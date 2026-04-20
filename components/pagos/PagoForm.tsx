@@ -202,7 +202,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
             onChange={(e) => setNuevaComision((p) => ({ ...p, monto: e.target.value }))}
             className="w-28"
           />
-          <Select value={nuevaComision.moneda} onValueChange={(v) => setNuevaComision((p) => ({ ...p, moneda: v }))}>
+          <Select value={nuevaComision.moneda} onValueChange={(v) => setNuevaComision((p) => ({ ...p, moneda: v ?? "USD" }))}>
             <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="USD">USD</SelectItem>

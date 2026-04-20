@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,10 +76,11 @@ export function EntradaFondoModal({ buckets }: { buckets: Bucket[] }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" className="cursor-pointer" />}>
+    <>
+      <Button size="sm" className="cursor-pointer" onClick={() => setOpen(true)}>
         <Plus size={14} className="mr-1.5" /> Agregar entrada
-      </DialogTrigger>
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Nueva entrada de fondo</DialogTitle>
@@ -152,6 +152,7 @@ export function EntradaFondoModal({ buckets }: { buckets: Bucket[] }) {
           </div>
         </form>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
