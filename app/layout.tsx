@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Antigravity — Gestión interna",
   description: "Gestión de clientes, pagos y fondos",
