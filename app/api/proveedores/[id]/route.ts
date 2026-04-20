@@ -37,6 +37,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await prisma.proveedor.delete({ where: { id } });
+  await prisma.$transaction(async (tx) => {
+    await tx.pagoProveedor.deleteMany({ where: { proveedorId: id } });
+    await tx.proveedor.delete({ where: { id } });
+  });
   return NextResponse.json({ ok: true });
 }

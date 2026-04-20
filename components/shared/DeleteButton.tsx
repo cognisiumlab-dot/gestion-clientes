@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 
@@ -21,10 +20,10 @@ export function DeleteButton({ apiPath, redirectTo, label = "Eliminar", iconOnly
     setLoading(true);
     const res = await fetch(apiPath, { method: "DELETE" });
     if (res.ok) {
-      router.push(redirectTo);
-      router.refresh();
+      window.location.href = redirectTo;
     } else {
-      alert("Error al eliminar. Intenta de nuevo.");
+      const body = await res.json().catch(() => ({}));
+      alert(`Error al eliminar: ${body?.error ?? res.status}`);
       setLoading(false);
       setConfirming(false);
     }

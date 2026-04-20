@@ -9,6 +9,7 @@ import { Plus, ArrowUpCircle } from "lucide-react";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { EstadoBadge } from "@/components/shared/EstadoBadge";
 import { MontoDisplay } from "@/components/shared/MontoDisplay";
+import { DeleteButton } from "@/components/shared/DeleteButton";
 
 export default async function PagosProveedoresPage() {
   const pagos = await prisma.pagoProveedor.findMany({
@@ -78,9 +79,12 @@ export default async function PagosProveedoresPage() {
                   <TableCell><EstadoBadge estado={p.estado} /></TableCell>
                   <TableCell className="text-neutral-500 text-sm">{p.comisiones.length}</TableCell>
                   <TableCell>
-                    <Link href={`/pagos/proveedores/${p.id}`}>
-                      <Button variant="ghost" size="sm" className="cursor-pointer text-neutral-500">Ver</Button>
-                    </Link>
+                    <div className="flex items-center gap-1">
+                      <Link href={`/pagos/proveedores/${p.id}`}>
+                        <Button variant="ghost" size="sm" className="cursor-pointer text-neutral-500">Ver</Button>
+                      </Link>
+                      <DeleteButton apiPath={`/api/pagos/proveedores/${p.id}`} redirectTo="/pagos/proveedores" iconOnly />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
