@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { EstadoBadge } from "@/components/shared/EstadoBadge";
 import { MontoDisplay } from "@/components/shared/MontoDisplay";
 import { Button } from "@/components/ui/button";
+import { DeleteButton } from "@/components/shared/DeleteButton";
 
 export default async function PagoProveedorDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -23,6 +24,7 @@ export default async function PagoProveedorDetailPage({ params }: { params: Prom
         description={pago.proveedor.nombre}
         action={
           <div className="flex gap-2">
+            <DeleteButton apiPath={`/api/pagos/proveedores/${pago.id}`} redirectTo={`/proveedores/${pago.proveedorId}`} label="Eliminar pago" />
             <Link href={`/pagos/proveedores/${pago.id}/editar`}>
               <Button size="sm" className="cursor-pointer">Editar pago</Button>
             </Link>

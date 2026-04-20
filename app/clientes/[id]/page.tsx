@@ -10,6 +10,7 @@ import { EstadoBadge } from "@/components/shared/EstadoBadge";
 import { MontoDisplay } from "@/components/shared/MontoDisplay";
 import { Plus, Pencil, ArrowDownCircle } from "lucide-react";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { DeleteButton } from "@/components/shared/DeleteButton";
 
 export default async function ClienteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -36,6 +37,7 @@ export default async function ClienteDetailPage({ params }: { params: Promise<{ 
         description={cliente.empresa ?? undefined}
         action={
           <div className="flex gap-2">
+            <DeleteButton apiPath={`/api/clientes/${id}`} redirectTo="/clientes" label="Eliminar cliente" />
             <Link href={`/clientes/${id}/editar`}>
               <Button variant="outline" size="sm" className="cursor-pointer">
                 <Pencil size={13} className="mr-1.5" /> Editar
