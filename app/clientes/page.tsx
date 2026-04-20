@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Users } from "lucide-react";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { DeleteButton } from "@/components/shared/DeleteButton";
 
 export default async function ClientesPage() {
   const clientes = await prisma.cliente.findMany({
@@ -61,11 +62,14 @@ export default async function ClientesPage() {
                   <TableCell className="text-neutral-500">{c.telefono ?? "—"}</TableCell>
                   <TableCell className="text-neutral-500">{c._count.pagos}</TableCell>
                   <TableCell>
-                    <Link href={`/clientes/${c.id}`}>
-                      <Button variant="ghost" size="sm" className="cursor-pointer text-neutral-500 hover:text-neutral-900">
-                        Ver
-                      </Button>
-                    </Link>
+                    <div className="flex items-center gap-1">
+                      <Link href={`/clientes/${c.id}`}>
+                        <Button variant="ghost" size="sm" className="cursor-pointer text-neutral-500 hover:text-neutral-900">
+                          Ver
+                        </Button>
+                      </Link>
+                      <DeleteButton apiPath={`/api/clientes/${c.id}`} redirectTo="/clientes" iconOnly />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

@@ -9,9 +9,10 @@ interface Props {
   apiPath: string;
   redirectTo: string;
   label?: string;
+  iconOnly?: boolean;
 }
 
-export function DeleteButton({ apiPath, redirectTo, label = "Eliminar" }: Props) {
+export function DeleteButton({ apiPath, redirectTo, label = "Eliminar", iconOnly = false }: Props) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -31,27 +32,40 @@ export function DeleteButton({ apiPath, redirectTo, label = "Eliminar" }: Props)
 
   if (confirming) {
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-neutral-500">¿Confirmar eliminación?</span>
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-neutral-500 whitespace-nowrap">¿Seguro?</span>
         <Button
           variant="destructive"
           size="sm"
           disabled={loading}
           onClick={handleDelete}
-          className="cursor-pointer"
+          className="cursor-pointer h-6 text-xs px-2"
         >
-          {loading ? "Eliminando..." : "Sí, eliminar"}
+          {loading ? "..." : "Sí"}
         </Button>
         <Button
           variant="outline"
           size="sm"
           disabled={loading}
           onClick={() => setConfirming(false)}
-          className="cursor-pointer"
+          className="cursor-pointer h-6 text-xs px-2"
         >
-          Cancelar
+          No
         </Button>
       </div>
+    );
+  }
+
+  if (iconOnly) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="cursor-pointer p-1.5 rounded hover:bg-red-50 text-neutral-400 hover:text-red-500 transition-colors"
+        title="Eliminar"
+      >
+        <Trash2 size={14} />
+      </button>
     );
   }
 

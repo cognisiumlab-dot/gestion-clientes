@@ -3,21 +3,65 @@ import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { MontoDisplay } from "@/components/shared/MontoDisplay";
 import { EstadoBadge } from "@/components/shared/EstadoBadge";
+import { PeriodSelector } from "@/components/dashboard/PeriodSelector";
 import {
   Users, Building2, ArrowDownCircle, ArrowUpCircle, Wallet, TrendingUp, TrendingDown
 } from "lucide-react";
+import { Suspense } from "react";
 
-export default async function DashboardPage() {
+function getPeriodRange(periodo: string): { desde: Date; hasta: Date; label: string } {
   const ahora = new Date();
-  const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+  const año = ahora.getFullYear();
+  const mes = ahora.getMonth();
+
+  switch (periodo) {
+    case "mes-pasado": {
+      const desde = new Date(año, mes - 1, 1);
+      const hasta = new Date(año, mes, 0, 23, 59, 59);
+      return { desde, hasta, label: "el mes pasado" };
+    }
+    case "ultimos-3": {
+      const desde = new Date(año, mes - 2, 1);
+      const hasta = new Date(año, mes + 1, 0, 23, 59, 59);
+      return { desde, hasta, label: "los últimos 3 meses" };
+    }
+    case "ultimos-6": {
+      const desde = new Date(año, mes - 5, 1);
+      const hasta = new Date(año, mes + 1, 0, 23, 59, 59);
+      return { desde, hasta, label: "los últimos 6 meses" };
+    }
+    case "este-año": {
+      const desde = new Date(año, 0, 1);
+      const hasta = new Date(año, 11, 31, 23, 59, 59);
+      return { desde, hasta, label: `el año ${año}` };
+    }
+    case "todo": {
+      return { desde: new Date(2000, 0, 1), hasta: new Date(2100, 0, 1), label: "todo el tiempo" };
+    }
+    default: {
+      // este-mes
+      const desde = new Date(año, mes, 1);
+      const hasta = new Date(año, mes + 1, 0, 23, 59, 59);
+      return { desde, hasta, label: "este mes" };
+    }
+  }
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ periodo?: string }>;
+}) {
+  const { periodo = "este-mes" } = await searchParams;
+  const { desde, hasta } = getPeriodRange(periodo);
 
   const [
     totalClientes,
     totalProveedores,
     pagosPendientesClientes,
     pagosPendientesProveedores,
-    ingresosMes,
-    gastosMes,
+    ingresosPeriodo,
+    gastosPeriodo,
     recentePagosClientes,
     recentePagosProveedores,
     entradasFondo,
@@ -28,11 +72,11 @@ export default async function DashboardPage() {
     prisma.pagoProveedor.count({ where: { estado: "PENDIENTE" } }),
     prisma.pagoCliente.aggregate({
       _sum: { monto: true },
-      where: { estado: "COMPLETADO", fecha: { gte: inicioMes } },
+      where: { estado: "COMPLETADO", fecha: { gte: desde, lte: hasta } },
     }),
     prisma.pagoProveedor.aggregate({
       _sum: { monto: true },
-      where: { estado: "COMPLETADO", fecha: { gte: inicioMes } },
+      where: { estado: "COMPLETADO", fecha: { gte: desde, lte: hasta } },
     }),
     prisma.pagoCliente.findMany({
       take: 5,
@@ -58,19 +102,30 @@ export default async function DashboardPage() {
     .reduce((sum, e) => sum + Number(e.monto), 0);
   const balanceLibre = totalIngreso - totalEgreso - totalAsignado;
 
+  const ingresos = Number(ingresosPeriodo._sum.monto ?? 0);
+  const gastos = Number(gastosPeriodo._sum.monto ?? 0);
+
   const stats = [
     { label: "Clientes", value: totalClientes, icon: Users, href: "/clientes", color: "text-neutral-700" },
     { label: "Proveedores", value: totalProveedores, icon: Building2, href: "/proveedores", color: "text-neutral-700" },
     { label: "Pagos pendientes (clientes)", value: pagosPendientesClientes, icon: ArrowDownCircle, href: "/pagos/clientes", color: "text-yellow-600" },
     { label: "Pagos pendientes (proveedores)", value: pagosPendientesProveedores, icon: ArrowUpCircle, href: "/pagos/proveedores", color: "text-yellow-600" },
-    { label: "Ingresos este mes", value: `USD ${Number(ingresosMes._sum.monto ?? 0).toFixed(2)}`, icon: TrendingUp, href: "/pagos/clientes", color: "text-green-700" },
-    { label: "Gastos este mes", value: `USD ${Number(gastosMes._sum.monto ?? 0).toFixed(2)}`, icon: ArrowUpCircle, href: "/pagos/proveedores", color: "text-red-600" },
+    { label: "Ingresos del período", value: `USD ${ingresos.toFixed(2)}`, icon: TrendingUp, href: "/pagos/clientes", color: "text-green-700" },
+    { label: "Gastos del período", value: `USD ${gastos.toFixed(2)}`, icon: TrendingDown, href: "/pagos/proveedores", color: "text-red-600" },
     { label: "Balance libre fondos", value: `USD ${balanceLibre.toFixed(2)}`, icon: Wallet, href: "/fondos", color: balanceLibre >= 0 ? "text-neutral-900" : "text-red-600" },
   ];
 
   return (
     <div>
-      <PageHeader title="Dashboard" description="Resumen general de la consultora" />
+      <PageHeader
+        title="Dashboard"
+        description="Resumen general de la consultora"
+        action={
+          <Suspense>
+            <PeriodSelector />
+          </Suspense>
+        }
+      />
 
       <div className="grid grid-cols-3 gap-4 mb-8">
         {stats.map((s) => (
