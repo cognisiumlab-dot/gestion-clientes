@@ -98,7 +98,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-lg">
       <div className="space-y-1.5">
         <Label>{tipo === "cliente" ? "Cliente" : "Proveedor"}</Label>
-        <Select onValueChange={(v) => { if (v) setValue("relacionadoId", v); }}>
+        <Select onValueChange={(v: string | null) =>{ if (v) setValue("relacionadoId", v); }}>
           <SelectTrigger>
             <SelectValue placeholder={`Seleccionar ${tipo === "cliente" ? "cliente" : "proveedor"}`} />
           </SelectTrigger>
@@ -121,7 +121,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
         </div>
         <div className="space-y-1.5">
           <Label>Moneda</Label>
-          <Select value={moneda ?? "USD"} onValueChange={(v) => setValue("moneda", v ?? "USD")}>
+          <Select value={moneda ?? "USD"} onValueChange={(v: string | null) =>setValue("moneda", v ?? "USD")}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="USD">USD</SelectItem>
@@ -135,7 +135,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
 
       <div className="space-y-1.5">
         <Label>Cuenta</Label>
-        <Select onValueChange={(v) => { if (v) setValue("cuentaId", v); }}>
+        <Select onValueChange={(v: string | null) =>{ if (v) setValue("cuentaId", v); }}>
           <SelectTrigger>
             <SelectValue placeholder="Seleccionar cuenta" />
           </SelectTrigger>
@@ -158,7 +158,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
         </div>
         <div className="space-y-1.5">
           <Label>Estado</Label>
-          <Select defaultValue="PENDIENTE" onValueChange={(v) => { if (v) setValue("estado", v as FormData["estado"]); }}>
+          <Select defaultValue="PENDIENTE" onValueChange={(v: string | null) =>{ if (v) setValue("estado", v as FormData["estado"]); }}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="PENDIENTE">Pendiente</SelectItem>
@@ -202,7 +202,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
             onChange={(e) => setNuevaComision((p) => ({ ...p, monto: e.target.value }))}
             className="w-28"
           />
-          <Select value={nuevaComision.moneda} onValueChange={(v) => setNuevaComision((p) => ({ ...p, moneda: v ?? "USD" }))}>
+          <Select value={nuevaComision.moneda} onValueChange={(v: string | null) =>setNuevaComision((p) => ({ ...p, moneda: v ?? "USD" }))}>
             <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="USD">USD</SelectItem>

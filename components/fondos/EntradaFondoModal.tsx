@@ -88,7 +88,7 @@ export function EntradaFondoModal({ buckets }: { buckets: Bucket[] }) {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
           <div className="space-y-1.5">
             <Label>Tipo</Label>
-            <Select defaultValue="INGRESO" onValueChange={(v) => { if (v) setValue("tipo", v as FormData["tipo"]); }}>
+            <Select defaultValue="INGRESO" onValueChange={(v: string | null) =>{ if (v) setValue("tipo", v as FormData["tipo"]); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="INGRESO">Ingreso — dinero recibido</SelectItem>
@@ -106,7 +106,7 @@ export function EntradaFondoModal({ buckets }: { buckets: Bucket[] }) {
             </div>
             <div className="space-y-1.5">
               <Label>Moneda</Label>
-              <Select value={moneda ?? "USD"} onValueChange={(v) => setValue("moneda", v ?? "USD")}>
+              <Select value={moneda ?? "USD"} onValueChange={(v: string | null) =>setValue("moneda", v ?? "USD")}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="USD">USD</SelectItem>
@@ -131,7 +131,7 @@ export function EntradaFondoModal({ buckets }: { buckets: Bucket[] }) {
           {tipo === "ASIGNACION" && (
             <div className="space-y-1.5">
               <Label>Bucket de destino</Label>
-              <Select onValueChange={(v) => { if (v) setValue("bucketId", v); }}>
+              <Select onValueChange={(v: string | null) =>{ if (v) setValue("bucketId", v); }}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar bucket" /></SelectTrigger>
                 <SelectContent>
                   {buckets.map((b) => (
