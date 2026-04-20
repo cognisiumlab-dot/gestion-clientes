@@ -79,20 +79,25 @@ export function PagoEditForm({ tipo, pagoId, relacionadoNombre, cuentas, default
   const cuentaLabel = cuentas.find((c) => c.id === cuentaId);
 
   function agregarComision() {
-    if (!nuevaComision.descripcion || !nuevaComision.monto) return;
+    if (!nuevaComision.monto) return;
     setComisiones((prev) => [...prev, { ...nuevaComision, monto: parseFloat(nuevaComision.monto) }]);
     setNuevaComision({ descripcion: "", monto: "", moneda: "USD" });
   }
 
   async function onSubmit(data: FormData) {
     const url = `/api/pagos/${tipo === "cliente" ? "clientes" : "proveedores"}/${pagoId}`;
+    const todasLasComisiones = [...comisiones];
+    if (nuevaComision.monto) {
+      todasLasComisiones.push({ ...nuevaComision, monto: parseFloat(nuevaComision.monto) });
+    }
+
     const res = await fetch(url, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, comisiones }),
+      body: JSON.stringify({ ...data, comisiones: todasLasComisiones }),
     });
     if (res.ok) router.push(`/pagos/${tipo === "cliente" ? "clientes" : "proveedores"}/${pagoId}`);
-    else router.refresh();
+    else alert("Error al guardar. Verifica los campos e intenta de nuevo.");
   }
 
   const totalFees = comisiones.reduce((s, c) => s + c.monto, 0);
@@ -181,7 +186,7 @@ export function PagoEditForm({ tipo, pagoId, relacionadoNombre, cuentas, default
         ))}
         <div className="flex gap-2">
           <Input
-            placeholder="Descripción fee"
+            placeholder="Descripción (opcional)"
             value={nuevaComision.descripcion}
             onChange={(e) => setNuevaComision((p) => ({ ...p, descripcion: e.target.value }))}
             className="flex-1"

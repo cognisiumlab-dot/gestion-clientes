@@ -2,7 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PagoForm } from "@/components/pagos/PagoForm";
 
-export default async function NuevoPagoClientePage() {
+export default async function NuevoPagoClientePage({ searchParams }: { searchParams: Promise<{ clienteId?: string }> }) {
+  const { clienteId } = await searchParams;
   const [clientes, cuentas] = await Promise.all([
     prisma.cliente.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true, empresa: true } }),
     prisma.cuenta.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true, moneda: true } }),
@@ -11,7 +12,7 @@ export default async function NuevoPagoClientePage() {
   return (
     <div>
       <PageHeader title="Registrar pago de cliente" description="Nuevo ingreso de un cliente" />
-      <PagoForm tipo="cliente" relacionados={clientes} cuentas={cuentas} />
+      <PagoForm tipo="cliente" relacionados={clientes} cuentas={cuentas} defaultRelacionadoId={clienteId} />
     </div>
   );
 }

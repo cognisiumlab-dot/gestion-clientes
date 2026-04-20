@@ -3,15 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const comisionSchema = z.object({
-  descripcion: z.string().min(1),
-  monto: z.number().positive(),
+  descripcion: z.string().default("Fee"),
+  monto: z.coerce.number().positive(),
   moneda: z.string().default("USD"),
 });
 
 const schema = z.object({
   clienteId: z.string().min(1),
   cuentaId: z.string().min(1),
-  monto: z.number().positive(),
+  monto: z.coerce.number().positive(),
   moneda: z.string().default("USD"),
   fecha: z.string(),
   descripcion: z.string().optional(),

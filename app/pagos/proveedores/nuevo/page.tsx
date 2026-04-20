@@ -2,7 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PagoForm } from "@/components/pagos/PagoForm";
 
-export default async function NuevoPagoProveedorPage() {
+export default async function NuevoPagoProveedorPage({ searchParams }: { searchParams: Promise<{ proveedorId?: string }> }) {
+  const { proveedorId } = await searchParams;
   const [proveedores, cuentas] = await Promise.all([
     prisma.proveedor.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true } }),
     prisma.cuenta.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true, moneda: true } }),
@@ -11,7 +12,7 @@ export default async function NuevoPagoProveedorPage() {
   return (
     <div>
       <PageHeader title="Registrar pago a proveedor" description="Nuevo egreso a un proveedor" />
-      <PagoForm tipo="proveedor" relacionados={proveedores} cuentas={cuentas} />
+      <PagoForm tipo="proveedor" relacionados={proveedores} cuentas={cuentas} defaultRelacionadoId={proveedorId} />
     </div>
   );
 }

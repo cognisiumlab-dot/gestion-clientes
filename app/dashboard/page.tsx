@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { MontoDisplay } from "@/components/shared/MontoDisplay";
 import { EstadoBadge } from "@/components/shared/EstadoBadge";
 import {
-  Users, Building2, ArrowDownCircle, ArrowUpCircle, Wallet, TrendingUp
+  Users, Building2, ArrowDownCircle, ArrowUpCircle, Wallet, TrendingUp, TrendingDown
 } from "lucide-react";
 
 export default async function DashboardPage() {
@@ -17,7 +17,9 @@ export default async function DashboardPage() {
     pagosPendientesClientes,
     pagosPendientesProveedores,
     ingresosMes,
+    gastosMes,
     recentePagosClientes,
+    recentePagosProveedores,
     entradasFondo,
   ] = await Promise.all([
     prisma.cliente.count(),
@@ -28,10 +30,19 @@ export default async function DashboardPage() {
       _sum: { monto: true },
       where: { estado: "COMPLETADO", fecha: { gte: inicioMes } },
     }),
+    prisma.pagoProveedor.aggregate({
+      _sum: { monto: true },
+      where: { estado: "COMPLETADO", fecha: { gte: inicioMes } },
+    }),
     prisma.pagoCliente.findMany({
       take: 5,
       orderBy: { creadoEn: "desc" },
       include: { cliente: { select: { nombre: true } }, cuenta: { select: { nombre: true } } },
+    }),
+    prisma.pagoProveedor.findMany({
+      take: 5,
+      orderBy: { creadoEn: "desc" },
+      include: { proveedor: { select: { nombre: true } }, cuenta: { select: { nombre: true } } },
     }),
     prisma.entradaFondo.findMany({ orderBy: { fecha: "desc" } }),
   ]);
@@ -53,6 +64,7 @@ export default async function DashboardPage() {
     { label: "Pagos pendientes (clientes)", value: pagosPendientesClientes, icon: ArrowDownCircle, href: "/pagos/clientes", color: "text-yellow-600" },
     { label: "Pagos pendientes (proveedores)", value: pagosPendientesProveedores, icon: ArrowUpCircle, href: "/pagos/proveedores", color: "text-yellow-600" },
     { label: "Ingresos este mes", value: `USD ${Number(ingresosMes._sum.monto ?? 0).toFixed(2)}`, icon: TrendingUp, href: "/pagos/clientes", color: "text-green-700" },
+    { label: "Gastos este mes", value: `USD ${Number(gastosMes._sum.monto ?? 0).toFixed(2)}`, icon: ArrowUpCircle, href: "/pagos/proveedores", color: "text-red-600" },
     { label: "Balance libre fondos", value: `USD ${balanceLibre.toFixed(2)}`, icon: Wallet, href: "/fondos", color: balanceLibre >= 0 ? "text-neutral-900" : "text-red-600" },
   ];
 
@@ -74,32 +86,64 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      <div className="rounded-lg border border-neutral-200 bg-white overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-neutral-100">
-          <p className="text-sm font-semibold text-neutral-700">Últimos pagos de clientes</p>
-        </div>
-        {recentePagosClientes.length === 0 ? (
-          <div className="px-5 py-8 text-center text-sm text-neutral-400">Sin pagos registrados aún</div>
-        ) : (
-          <div className="divide-y divide-neutral-100">
-            {recentePagosClientes.map((p) => (
-              <div key={p.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-neutral-50">
-                <div>
-                  <p className="text-sm font-medium">{p.cliente.nombre}</p>
-                  <p className="text-xs text-neutral-400">
-                    {p.cuenta.nombre} · {new Date(p.fecha).toLocaleDateString("es-CO")}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium">
-                    <MontoDisplay monto={p.monto} moneda={p.moneda} />
-                  </span>
-                  <EstadoBadge estado={p.estado} />
-                </div>
-              </div>
-            ))}
+      <div className="grid grid-cols-2 gap-6">
+        <div className="rounded-lg border border-neutral-200 bg-white overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-neutral-100 flex items-center gap-2">
+            <TrendingUp size={14} className="text-green-600" />
+            <p className="text-sm font-semibold text-neutral-700">Últimos ingresos</p>
           </div>
-        )}
+          {recentePagosClientes.length === 0 ? (
+            <div className="px-5 py-8 text-center text-sm text-neutral-400">Sin pagos registrados aún</div>
+          ) : (
+            <div className="divide-y divide-neutral-100">
+              {recentePagosClientes.map((p) => (
+                <div key={p.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-neutral-50">
+                  <div>
+                    <p className="text-sm font-medium">{p.cliente.nombre}</p>
+                    <p className="text-xs text-neutral-400">
+                      {p.cuenta.nombre} · {new Date(p.fecha).toLocaleDateString("es-CO")}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-green-700">
+                      +<MontoDisplay monto={p.monto} moneda={p.moneda} />
+                    </span>
+                    <EstadoBadge estado={p.estado} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-neutral-200 bg-white overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-neutral-100 flex items-center gap-2">
+            <TrendingDown size={14} className="text-red-500" />
+            <p className="text-sm font-semibold text-neutral-700">Últimos gastos</p>
+          </div>
+          {recentePagosProveedores.length === 0 ? (
+            <div className="px-5 py-8 text-center text-sm text-neutral-400">Sin gastos registrados aún</div>
+          ) : (
+            <div className="divide-y divide-neutral-100">
+              {recentePagosProveedores.map((p) => (
+                <div key={p.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-neutral-50">
+                  <div>
+                    <p className="text-sm font-medium">{p.proveedor.nombre}</p>
+                    <p className="text-xs text-neutral-400">
+                      {p.cuenta.nombre} · {new Date(p.fecha).toLocaleDateString("es-CO")}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-red-600">
+                      −<MontoDisplay monto={p.monto} moneda={p.moneda} />
+                    </span>
+                    <EstadoBadge estado={p.estado} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -40,9 +40,10 @@ interface Props {
   tipo: "cliente" | "proveedor";
   relacionados: { id: string; nombre: string; empresa?: string | null }[];
   cuentas: { id: string; nombre: string; moneda: string }[];
+  defaultRelacionadoId?: string;
 }
 
-export function PagoForm({ tipo, relacionados, cuentas }: Props) {
+export function PagoForm({ tipo, relacionados, cuentas, defaultRelacionadoId }: Props) {
   const router = useRouter();
   const [comisiones, setComisiones] = useState<Comision[]>([]);
   const [nuevaComision, setNuevaComision] = useState({ descripcion: "", monto: "", moneda: "USD" });
@@ -59,6 +60,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
       moneda: "USD",
       estado: "PENDIENTE",
       fecha: new Date().toISOString().slice(0, 10),
+      ...(defaultRelacionadoId ? { relacionadoId: defaultRelacionadoId } : {}),
     },
   });
 
@@ -69,7 +71,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
   const cuentaLabel = cuentas.find((c) => c.id === cuentaId);
 
   function agregarComision() {
-    if (!nuevaComision.descripcion || !nuevaComision.monto) return;
+    if (!nuevaComision.monto) return;
     setComisiones((prev) => [
       ...prev,
       { ...nuevaComision, monto: parseFloat(nuevaComision.monto) },
@@ -78,6 +80,12 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
   }
 
   async function onSubmit(data: FormData) {
+    // Include pending fee if fields are filled but "+" wasn't clicked
+    const todasLasComisiones = [...comisiones];
+    if (nuevaComision.monto) {
+      todasLasComisiones.push({ ...nuevaComision, monto: parseFloat(nuevaComision.monto) });
+    }
+
     const body = {
       ...(tipo === "cliente" ? { clienteId: data.relacionadoId } : { proveedorId: data.relacionadoId }),
       cuentaId: data.cuentaId,
@@ -86,7 +94,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
       fecha: data.fecha,
       descripcion: data.descripcion,
       estado: data.estado,
-      comisiones,
+      comisiones: todasLasComisiones,
     };
 
     const res = await fetch(`/api/pagos/${tipo === "cliente" ? "clientes" : "proveedores"}`, {
@@ -95,7 +103,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
       body: JSON.stringify(body),
     });
     if (res.ok) router.push(`/pagos/${tipo === "cliente" ? "clientes" : "proveedores"}`);
-    else router.refresh();
+    else alert("Error al guardar. Verifica los campos e intenta de nuevo.");
   }
 
   return (
@@ -199,7 +207,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
         ))}
         <div className="flex gap-2">
           <Input
-            placeholder="Descripción fee"
+            placeholder="Descripción (opcional)"
             value={nuevaComision.descripcion}
             onChange={(e) => setNuevaComision((p) => ({ ...p, descripcion: e.target.value }))}
             className="flex-1"
