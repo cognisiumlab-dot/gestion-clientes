@@ -121,7 +121,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
         </div>
         <div className="space-y-1.5">
           <Label>Moneda</Label>
-          <Select value={moneda} onValueChange={(v) => setValue("moneda", v)}>
+          <Select value={moneda ?? "USD"} onValueChange={(v) => setValue("moneda", v)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="USD">USD</SelectItem>
