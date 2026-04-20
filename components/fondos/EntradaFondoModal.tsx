@@ -78,10 +78,8 @@ export function EntradaFondoModal({ buckets }: { buckets: Bucket[] }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" className="cursor-pointer">
-          <Plus size={14} className="mr-1.5" /> Agregar entrada
-        </Button>
+      <DialogTrigger render={<Button size="sm" className="cursor-pointer" />}>
+        <Plus size={14} className="mr-1.5" /> Agregar entrada
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
