@@ -2,13 +2,20 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
+const comisionSchema = z.object({
+  descripcion: z.string().min(1),
+  monto: z.number().positive(),
+  moneda: z.string().default("USD"),
+});
+
 const schema = z.object({
   estado: z.enum(["PENDIENTE", "COMPLETADO", "CANCELADO"]).optional(),
-  descripcion: z.string().optional(),
+  descripcion: z.string().optional().nullable(),
   monto: z.number().positive().optional(),
   moneda: z.string().optional(),
   fecha: z.string().optional(),
   cuentaId: z.string().optional(),
+  comisiones: z.array(comisionSchema).optional(),
 });
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -31,11 +38,20 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const { fecha, ...rest } = parsed.data;
-  const pago = await prisma.pagoCliente.update({
-    where: { id },
-    data: { ...rest, ...(fecha ? { fecha: new Date(fecha) } : {}) },
-    include: { cliente: true, cuenta: true, comisiones: true },
+  const { fecha, comisiones, ...rest } = parsed.data;
+  const pago = await prisma.$transaction(async (tx) => {
+    if (comisiones !== undefined) {
+      await tx.comision.deleteMany({ where: { pagoClienteId: id } });
+    }
+    return tx.pagoCliente.update({
+      where: { id },
+      data: {
+        ...rest,
+        ...(fecha ? { fecha: new Date(fecha) } : {}),
+        ...(comisiones !== undefined ? { comisiones: { create: comisiones } } : {}),
+      },
+      include: { cliente: true, cuenta: true, comisiones: true },
+    });
   });
   return NextResponse.json(pago);
 }

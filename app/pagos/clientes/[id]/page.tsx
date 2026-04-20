@@ -22,9 +22,14 @@ export default async function PagoClienteDetailPage({ params }: { params: Promis
         title="Detalle de pago"
         description={`${pago.cliente.nombre}${pago.cliente.empresa ? ` — ${pago.cliente.empresa}` : ""}`}
         action={
-          <Link href={`/clientes/${pago.clienteId}`}>
-            <Button variant="outline" size="sm" className="cursor-pointer">Ver cliente</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href={`/pagos/clientes/${pago.id}/editar`}>
+              <Button size="sm" className="cursor-pointer">Editar pago</Button>
+            </Link>
+            <Link href={`/clientes/${pago.clienteId}`}>
+              <Button variant="outline" size="sm" className="cursor-pointer">Ver cliente</Button>
+            </Link>
+          </div>
         }
       />
 
@@ -34,11 +39,19 @@ export default async function PagoClienteDetailPage({ params }: { params: Promis
             <h2 className="text-sm font-semibold text-neutral-700">Información del pago</h2>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-neutral-400 text-xs mb-0.5">Monto</p>
+                <p className="text-neutral-400 text-xs mb-0.5">Monto bruto</p>
                 <p className="font-semibold text-lg">
                   <MontoDisplay monto={pago.monto} moneda={pago.moneda} />
                 </p>
               </div>
+              {totalComisiones > 0 && (
+                <div>
+                  <p className="text-neutral-400 text-xs mb-0.5">Neto recibido</p>
+                  <p className="font-semibold text-lg text-green-700">
+                    <MontoDisplay monto={Number(pago.monto) - totalComisiones} moneda={pago.moneda} />
+                  </p>
+                </div>
+              )}
               <div>
                 <p className="text-neutral-400 text-xs mb-0.5">Estado</p>
                 <EstadoBadge estado={pago.estado} />

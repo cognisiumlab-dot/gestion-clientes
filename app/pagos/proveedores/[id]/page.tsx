@@ -22,9 +22,14 @@ export default async function PagoProveedorDetailPage({ params }: { params: Prom
         title="Detalle de pago a proveedor"
         description={pago.proveedor.nombre}
         action={
-          <Link href={`/proveedores/${pago.proveedorId}`}>
-            <Button variant="outline" size="sm" className="cursor-pointer">Ver proveedor</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href={`/pagos/proveedores/${pago.id}/editar`}>
+              <Button size="sm" className="cursor-pointer">Editar pago</Button>
+            </Link>
+            <Link href={`/proveedores/${pago.proveedorId}`}>
+              <Button variant="outline" size="sm" className="cursor-pointer">Ver proveedor</Button>
+            </Link>
+          </div>
         }
       />
 
@@ -33,11 +38,19 @@ export default async function PagoProveedorDetailPage({ params }: { params: Prom
           <h2 className="text-sm font-semibold text-neutral-700">Información del pago</h2>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <p className="text-neutral-400 text-xs mb-0.5">Monto</p>
+              <p className="text-neutral-400 text-xs mb-0.5">Monto bruto</p>
               <p className="font-semibold text-lg">
                 <MontoDisplay monto={pago.monto} moneda={pago.moneda} />
               </p>
             </div>
+            {totalComisiones > 0 && (
+              <div>
+                <p className="text-neutral-400 text-xs mb-0.5">Neto pagado</p>
+                <p className="font-semibold text-lg text-red-600">
+                  <MontoDisplay monto={Number(pago.monto) - totalComisiones} moneda={pago.moneda} />
+                </p>
+              </div>
+            )}
             <div>
               <p className="text-neutral-400 text-xs mb-0.5">Estado</p>
               <EstadoBadge estado={pago.estado} />
