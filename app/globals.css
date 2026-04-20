@@ -3,11 +3,31 @@
 :root {
   --background: #fafafa;
   --foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --input: #e5e7eb;
+  --ring: #6b7280;
+  --accent: #f3f4f6;
+  --accent-foreground: #111827;
+  --muted: #f9fafb;
+  --muted-foreground: #6b7280;
+  --border: #e5e7eb;
+  --destructive: #ef4444;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
 }
 
 body {

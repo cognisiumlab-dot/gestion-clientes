@@ -63,6 +63,10 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
   });
 
   const moneda = watch("moneda");
+  const relacionadoId = watch("relacionadoId");
+  const cuentaId = watch("cuentaId");
+  const relacionadoLabel = relacionados.find((r) => r.id === relacionadoId);
+  const cuentaLabel = cuentas.find((c) => c.id === cuentaId);
 
   function agregarComision() {
     if (!nuevaComision.descripcion || !nuevaComision.monto) return;
@@ -99,8 +103,12 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
       <div className="space-y-1.5">
         <Label>{tipo === "cliente" ? "Cliente" : "Proveedor"}</Label>
         <Select onValueChange={(v: string | null) =>{ if (v) setValue("relacionadoId", v); }}>
-          <SelectTrigger>
-            <SelectValue placeholder={`Seleccionar ${tipo === "cliente" ? "cliente" : "proveedor"}`} />
+          <SelectTrigger className="w-full">
+            <span className="flex-1 text-left truncate text-sm">
+              {relacionadoLabel
+                ? `${relacionadoLabel.nombre}${relacionadoLabel.empresa ? ` — ${relacionadoLabel.empresa}` : ""}`
+                : `Seleccionar ${tipo === "cliente" ? "cliente" : "proveedor"}`}
+            </span>
           </SelectTrigger>
           <SelectContent>
             {relacionados.map((r) => (
@@ -136,8 +144,10 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
       <div className="space-y-1.5">
         <Label>Cuenta</Label>
         <Select onValueChange={(v: string | null) =>{ if (v) setValue("cuentaId", v); }}>
-          <SelectTrigger>
-            <SelectValue placeholder="Seleccionar cuenta" />
+          <SelectTrigger className="w-full">
+            <span className="flex-1 text-left truncate text-sm">
+              {cuentaLabel ? `${cuentaLabel.nombre} (${cuentaLabel.moneda})` : "Seleccionar cuenta"}
+            </span>
           </SelectTrigger>
           <SelectContent>
             {cuentas.map((c) => (
