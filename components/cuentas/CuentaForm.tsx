@@ -65,7 +65,7 @@ export function CuentaForm({ defaultValues, cuentaId }: Props) {
 
       <div className="space-y-1.5">
         <Label>Moneda</Label>
-        <Select value={moneda ?? "USD"} onValueChange={(v) => setValue("moneda", v)}>
+        <Select value={moneda ?? "USD"} onValueChange={(v) => setValue("moneda", v ?? "USD")}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>

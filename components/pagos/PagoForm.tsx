@@ -98,7 +98,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-lg">
       <div className="space-y-1.5">
         <Label>{tipo === "cliente" ? "Cliente" : "Proveedor"}</Label>
-        <Select onValueChange={(v) => setValue("relacionadoId", v)}>
+        <Select onValueChange={(v) => { if (v) setValue("relacionadoId", v); }}>
           <SelectTrigger>
             <SelectValue placeholder={`Seleccionar ${tipo === "cliente" ? "cliente" : "proveedor"}`} />
           </SelectTrigger>
@@ -121,7 +121,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
         </div>
         <div className="space-y-1.5">
           <Label>Moneda</Label>
-          <Select value={moneda ?? "USD"} onValueChange={(v) => setValue("moneda", v)}>
+          <Select value={moneda ?? "USD"} onValueChange={(v) => setValue("moneda", v ?? "USD")}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="USD">USD</SelectItem>
@@ -135,7 +135,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
 
       <div className="space-y-1.5">
         <Label>Cuenta</Label>
-        <Select onValueChange={(v) => setValue("cuentaId", v)}>
+        <Select onValueChange={(v) => { if (v) setValue("cuentaId", v); }}>
           <SelectTrigger>
             <SelectValue placeholder="Seleccionar cuenta" />
           </SelectTrigger>
@@ -158,7 +158,7 @@ export function PagoForm({ tipo, relacionados, cuentas }: Props) {
         </div>
         <div className="space-y-1.5">
           <Label>Estado</Label>
-          <Select defaultValue="PENDIENTE" onValueChange={(v) => setValue("estado", v as FormData["estado"])}>
+          <Select defaultValue="PENDIENTE" onValueChange={(v) => { if (v) setValue("estado", v as FormData["estado"]); }}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="PENDIENTE">Pendiente</SelectItem>
