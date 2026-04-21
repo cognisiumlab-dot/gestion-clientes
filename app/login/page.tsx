@@ -37,9 +37,9 @@ export default function LoginPage() {
         <div className="bg-white border border-neutral-200 rounded-xl p-8 shadow-sm">
           <div className="flex items-center gap-2.5 mb-8">
             <div className="w-7 h-7 rounded-md bg-neutral-900 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">A</span>
+              <span className="text-white text-xs font-bold">C</span>
             </div>
-            <span className="font-semibold text-neutral-900 tracking-tight">Antigravity</span>
+            <span className="font-semibold text-neutral-900 tracking-tight">Cognisium Lab Finances</span>
           </div>
 
           <h1 className="text-lg font-semibold text-neutral-900 mb-1">Iniciar sesión</h1>
@@ -81,7 +81,7 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-xs text-neutral-400 mt-4">Gestión interna · Antigravity 2026</p>
+        <p className="text-center text-xs text-neutral-400 mt-4">Gestión interna · Cognisium Lab 2026</p>
       </div>
     </div>
   );

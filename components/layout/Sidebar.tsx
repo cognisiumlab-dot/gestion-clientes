@@ -32,10 +32,10 @@ export function Sidebar() {
       <div className="px-5 py-5 border-b border-neutral-100">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md bg-neutral-900 flex items-center justify-center">
-            <span className="text-white text-xs font-bold">A</span>
+            <span className="text-white text-xs font-bold">C</span>
           </div>
           <span className="font-semibold text-sm text-neutral-900 tracking-tight">
-            Antigravity
+            Cognisium Lab
           </span>
         </div>
       </div>

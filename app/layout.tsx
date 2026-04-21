@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Antigravity — Gestión interna",
+  title: "Cognisium Lab Finances",
   description: "Gestión de clientes, pagos y fondos",
 };
 

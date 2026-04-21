@@ -14,10 +14,11 @@ export async function POST(req: Request) {
 
   const secret = process.env.AUTH_SECRET!;
   const res = NextResponse.json({ ok: true });
+  // SameSite=None + Secure required for cross-site iframe contexts (e.g. GoHighLevel)
   res.cookies.set("ag_session", secret, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: true,
+    sameSite: "none",
     maxAge: 60 * 60 * 24 * 30, // 30 days
     path: "/",
   });
