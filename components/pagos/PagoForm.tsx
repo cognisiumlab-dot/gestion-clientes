@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Loader2 } from "lucide-react";
 
 const schema = z.object({
   relacionadoId: z.string().min(1, "Requerido"),
@@ -235,8 +235,8 @@ export function PagoForm({ tipo, relacionados, cuentas, defaultRelacionadoId }: 
       </div>
 
       <div className="flex gap-3 pt-2">
-        <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
-          {isSubmitting ? "Guardando..." : "Registrar pago"}
+        <Button type="submit" disabled={isSubmitting} className="cursor-pointer min-w-[130px]">
+          {isSubmitting ? <><Loader2 size={14} className="mr-1.5 animate-spin" />Guardando...</> : "Registrar pago"}
         </Button>
         <Button type="button" variant="outline" onClick={() => router.back()} className="cursor-pointer">
           Cancelar

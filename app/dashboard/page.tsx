@@ -130,7 +130,7 @@ export default async function DashboardPage({
       <div className="grid grid-cols-3 gap-4 mb-8">
         {stats.map((s) => (
           <Link key={s.label} href={s.href}>
-            <div className="rounded-lg border border-neutral-200 bg-white p-4 hover:border-neutral-300 transition-colors">
+            <div className="rounded-lg border border-neutral-200 bg-white p-4 hover:border-neutral-300 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
               <div className="flex items-center gap-2 mb-2">
                 <s.icon size={14} className="text-neutral-400" />
                 <p className="text-xs text-neutral-500">{s.label}</p>
@@ -152,7 +152,7 @@ export default async function DashboardPage({
           ) : (
             <div className="divide-y divide-neutral-100">
               {recentePagosClientes.map((p) => (
-                <div key={p.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-neutral-50">
+                <div key={p.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-neutral-50 transition-colors duration-100">
                   <div>
                     <p className="text-sm font-medium">{p.cliente.nombre}</p>
                     <p className="text-xs text-neutral-400">
@@ -181,7 +181,7 @@ export default async function DashboardPage({
           ) : (
             <div className="divide-y divide-neutral-100">
               {recentePagosProveedores.map((p) => (
-                <div key={p.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-neutral-50">
+                <div key={p.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-neutral-50 transition-colors duration-100">
                   <div>
                     <p className="text-sm font-medium">{p.proveedor.nombre}</p>
                     <p className="text-xs text-neutral-400">

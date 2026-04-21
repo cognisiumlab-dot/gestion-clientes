@@ -6,7 +6,7 @@
   --popover: #ffffff;
   --popover-foreground: #171717;
   --input: #e5e7eb;
-  --ring: #6b7280;
+  --ring: #3b82f6;
   --accent: #f3f4f6;
   --accent-foreground: #111827;
   --muted: #f9fafb;
@@ -35,4 +35,18 @@ body {
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

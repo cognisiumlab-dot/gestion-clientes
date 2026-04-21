@@ -50,13 +50,13 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors",
+                "flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-all duration-150",
                 active
-                  ? "bg-neutral-100 text-neutral-900 font-medium"
-                  : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50"
+                  ? "bg-neutral-100 text-neutral-900 font-medium shadow-[inset_2px_0_0_0_#171717] pl-[9px]"
+                  : "text-neutral-500 hover:text-neutral-800 hover:bg-neutral-50"
               )}
             >
-              <Icon size={15} strokeWidth={1.75} />
+              <Icon size={15} strokeWidth={active ? 2 : 1.75} />
               {label}
             </Link>
           );
