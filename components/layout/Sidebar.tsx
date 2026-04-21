@@ -10,6 +10,7 @@ import {
   Wallet,
   CreditCard,
   Building2,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -63,8 +64,17 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="px-5 py-4 border-t border-neutral-100">
-        <p className="text-[11px] text-neutral-400">Gestión interna</p>
+      <div className="px-3 py-3 border-t border-neutral-100">
+        <button
+          onClick={async () => {
+            await fetch("/api/auth/logout", { method: "POST" });
+            window.location.href = "/login";
+          }}
+          className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-md text-sm text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50 transition-all duration-150"
+        >
+          <LogOut size={14} />
+          Cerrar sesión
+        </button>
       </div>
     </aside>
   );
