@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Costos Adicionales por Consumo</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f0; color: #1a1a1a; padding: 2rem 1rem; min-height: 100vh; }
+  .container { max-width: 700px; margin: 0 auto; }
+  .badge { display: inline-block; background: #ede9fe; color: #4f46e5; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px; margin-bottom: 0.6rem; }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 0.2rem; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 2rem; }
+
+  .step { background: #fff; border-radius: 14px; border: 0.5px solid #e0e0d8; padding: 1.4rem 1.6rem; margin-bottom: 1rem; }
+  .step-num { font-size: 11px; font-weight: 600; color: #bbb; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.35rem; }
+  .step-q { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 0.3rem; line-height: 1.35; }
+  .step-hint { font-size: 12px; color: #aaa; margin-bottom: 1rem; line-height: 1.5; }
+
+  .fields-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-group label { font-size: 12px; color: #888; font-weight: 500; line-height: 1.4; }
+  .field-group input[type=number] { padding: 9px 12px; border-radius: 8px; border: 1px solid #e0e0d8; font-size: 16px; font-weight: 600; color: #1a1a1a; width: 100%; background: #fafaf7; outline: none; transition: border 0.15s; }
+  .field-group input[type=number]:focus { border-color: #4f46e5; background: #fff; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+  .chip { font-size: 11.5px; padding: 4px 10px; border-radius: 20px; border: 1px solid #e0e0d8; background: #f8f8f5; color: #555; cursor: pointer; transition: all 0.12s; user-select: none; }
+  .chip:hover { border-color: #a5b4fc; background: #f0f0fd; color: #4f46e5; }
+  .chip.active { border-color: #4f46e5; background: #4f46e5; color: #fff; }
+
+  /* CALL CARDS */
+  .call-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem 0 0; }
+  .call-card { border-radius: 12px; padding: 1.1rem 1.2rem; border: 1.5px solid #e0e0d8; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+  .call-card:hover { border-color: #a5b4fc; }
+  .call-card.selected { border-color: #4f46e5; background: #f7f7fe; }
+  .call-card.selected.is-ai { border-color: #4f46e5; background: #f7f7fe; }
+  .cc-top-badge { position: absolute; top: 0; left: 0; right: 0; text-align: center; font-size: 10.5px; font-weight: 700; padding: 3px 0; }
+  .cc-top-badge.recommended { background: #4f46e5; color: #fff; }
+  .cc-top-badge.reference { background: #f0f0e8; color: #999; }
+  .cc-body { margin-top: 22px; }
+  .cc-title { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px; }
+  .cc-price { font-size: 24px; font-weight: 800; color: #4f46e5; margin: 4px 0 6px; }
+  .cc-price.gray { color: #aaa; }
+  .cc-features { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+  .cc-features li { font-size: 11px; color: #777; display: flex; align-items: flex-start; gap: 5px; }
+  .cc-features li::before { content: '✓'; color: #4f46e5; font-weight: 700; flex-shrink: 0; }
+  .cc-features.muted li { color: #bbb; }
+  .cc-features.muted li::before { content: '·'; color: #ccc; font-weight: 400; }
+
+  .call-note { font-size: 12px; color: #555; background: #f0f0fd; border-radius: 8px; padding: 8px 12px; margin-top: 10px; line-height: 1.6; border-left: 3px solid #4f46e5; }
+
+  /* Toggle */
+  .toggle-list { display: flex; flex-direction: column; }
+  .toggle-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #f5f5f0; }
+  .toggle-item:last-child { border-bottom: none; }
+  .toggle-text { flex: 1; }
+  .toggle-text strong { font-size: 13px; font-weight: 600; color: #1a1a1a; display: block; margin-bottom: 2px; }
+  .toggle-text span { font-size: 11.5px; color: #aaa; line-height: 1.5; }
+  .toggle-wrap { position: relative; width: 42px; height: 24px; flex-shrink: 0; margin-top: 1px; }
+  .toggle-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .toggle-track { position: absolute; inset: 0; background: #ddd; border-radius: 24px; cursor: pointer; transition: background 0.2s; }
+  .toggle-wrap input:checked + .toggle-track { background: #4f46e5; }
+  .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); pointer-events: none; }
+  .toggle-wrap input:checked ~ .toggle-thumb { transform: translateX(18px); }
+
+  .mini-est { font-size: 12px; color: #4f46e5; font-weight: 500; margin-top: 0.85rem; padding: 6px 10px; background: #f0f0fd; border-radius: 7px; }
+
+  .cta { width: 100%; margin-top: 0.5rem; padding: 14px; background: #4f46e5; color: #fff; font-size: 15px; font-weight: 700; border: none; border-radius: 11px; cursor: pointer; transition: background 0.15s; }
+  .cta:hover { background: #4338ca; }
+
+  /* RESULT */
+  #result { display: none; }
+  .result-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .result-header h2 { font-size: 17px; font-weight: 700; }
+  .edit-btn { font-size: 12px; color: #4f46e5; font-weight: 600; background: none; border: 1px solid #c7c5f0; border-radius: 7px; padding: 5px 12px; cursor: pointer; }
+
+  .result-card { background: #fff; border-radius: 12px; border: 0.5px solid #e0e0d8; overflow: hidden; margin-bottom: 0.85rem; }
+  .result-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 0.5px solid #f5f5f0; cursor: pointer; transition: background 0.1s; }
+  .result-row:last-child { border-bottom: none; }
+  .result-row:hover { background: #fafaf7; }
+  .rr-left { display: flex; align-items: center; gap: 9px; }
+  .rr-icon { font-size: 15px; }
+  .rr-label { font-size: 13px; color: #444; font-weight: 500; }
+  .rr-sub { font-size: 11px; color: #bbb; display: block; }
+  .rr-price { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+  .rr-price.zero { color: #ccc; font-weight: 400; font-size: 13px; }
+  .expand-hint { font-size: 10px; color: #ccc; }
+
+  .slider-edit { padding: 12px 16px 14px; background: #fafaf7; border-top: 0.5px solid #f0f0e8; display: none; }
+  .sle-row { display: flex; align-items: center; gap: 10px; margin: 7px 0; }
+  .sle-row label { font-size: 12px; color: #777; min-width: 185px; }
+  .sle-row input[type=range] { flex: 1; accent-color: #4f46e5; }
+  .sle-row span { font-size: 12px; font-weight: 600; min-width: 65px; text-align: right; }
+  .sle-note { font-size: 11px; color: #aaa; margin-top: 6px; }
+
+  .summary-box { border: 2px solid #4f46e5; border-radius: 13px; padding: 1.2rem 1.5rem; background: #fff; margin-top: 0.5rem; }
+  .sb-label { font-size: 11px; font-weight: 600; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.75rem; }
+  .sb-line { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+  .sb-line span:first-child { color: #888; }
+  .sb-line span:last-child { font-weight: 600; }
+  .sb-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px solid #e8e8e0; }
+  .sb-total span:first-child { font-size: 14px; font-weight: 600; }
+  .sb-total span:last-child { font-size: 30px; font-weight: 800; color: #4f46e5; }
+
+  .footer-note { font-size: 11px; color: #bbb; line-height: 1.7; margin-top: 1rem; padding: 0.75rem 1rem; background: #fafaf7; border-radius: 8px; border: 0.5px solid #ebebE3; }
+</style>
+</head>
+<body>
+<div class="container">
+  <span class="badge">Estimador de costos por uso</span>
+  <h1>Calculadora de Costos Adicionales</h1>
+  <p class="subtitle">Responde estas preguntas para estimar el costo mensual de tu operación digital.</p>
+
+  <div id="wizard">
+
+    <!-- P1 -->
+    <div class="step">
+      <div class="step-num">Pregunta 1 de 5</div>
+      <div class="step-q">¿Cuántos chats de clientes recibes al mes?</div>
+      <div class="step-hint">Conversaciones que llegan por WhatsApp, chat web u otros canales que la IA atiende.</div>
+      <div class="fields-2">
+        <div class="field-group">
+          <label>Conversaciones / mes</label>
+          <input type="number" id="p_chats" value="1500" min="0" oninput="clearChips('chips_chats');preview()">
+          <div class="chips" id="chips_chats">
+            <span class="chip" onclick="setChip('p_chats',500,this)">500</span>
+            <span class="chip" onclick="setChip('p_chats',1000,this)">1,000</span>
+            <span class="chip active" onclick="setChip('p_chats',1500,this)">1,500</span>
+            <span class="chip" onclick="setChip('p_chats',3000,this)">3,000</span>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Mensajes promedio por conversación</label>
+          <input type="number" id="p_msgPerChat" value="10" min="1" max="50" oninput="clearChips('chips_msg');preview()">
+          <div class="chips" id="chips_msg">
+            <span class="chip" onclick="setChip('p_msgPerChat',4,this)">4 mensajes</span>
+            <span class="chip" onclick="setChip('p_msgPerChat',5,this)">5 mensajes</span>
+            <span class="chip" onclick="setChip('p_msgPerChat',7,this)">7 mensajes</span>
+            <span class="chip active" onclick="setChip('p_msgPerChat',10,this)">10 mensajes</span>
+          </div>
+        </div>
+      </div>
+      <div class="mini-est" id="est_ai">→ calculando...</div>
+
+      <!-- Voice notes toggle -->
+      <div style="margin-top:1rem; border-top:0.5px solid #f0f0e8; padding-top:1rem;">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+          <div>
+            <div style="font-size:13px; font-weight:600; color:#1a1a1a; margin-bottom:2px;">🎙️ ¿Te gustaría que tu chatbot envíe notas de voz personalizadas?</div>
+            <div style="font-size:11.5px; color:#aaa; line-height:1.5;">Voz clonada del negocio enviada como audio en WhatsApp · $0.012/min</div>
+          </div>
+          <label class="toggle-wrap" style="flex-shrink:0; margin-top:2px;">
+            <input type="checkbox" id="t_voiceNotes" onchange="toggleVoiceNotes()">
+            <div class="toggle-track"></div><div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div id="voiceNotes_extra" style="display:none; margin-top:0.9rem; padding:1rem; background:#f8f8f5; border-radius:10px; border:0.5px solid #e8e8e0;">
+          <div style="font-size:12px; color:#777; margin-bottom:0.6rem;">¿Qué porcentaje de respuestas quieres que sean notas de voz?</div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+            <input type="range" min="10" max="70" step="10" value="20" id="p_vnPct" oninput="preview()" style="flex:1; accent-color:#4f46e5;">
+            <div style="background:#4f46e5; color:#fff; font-size:13px; font-weight:700; padding:4px 10px; border-radius:6px; min-width:44px; text-align:center;" id="vnPctBox">20%</div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:10.5px; color:#bbb; margin-bottom:0.85rem;">
+            <span>10% mínimo</span><span style="color:#4f46e5;font-weight:600;">20% recomendado</span><span>70% máximo</span>
+          </div>
+          <div class="chips" style="margin-bottom:0.75rem;">
+            <span class="chip" onclick="setSliderChip('p_vnPct',10,this,'%')">10%</span>
+            <span class="chip active" onclick="setSliderChip('p_vnPct',20,this,'%')">20%</span>
+            <span class="chip" onclick="setSliderChip('p_vnPct',30,this,'%')">30%</span>
+            <span class="chip" onclick="setSliderChip('p_vnPct',50,this,'%')">50%</span>
+            <span class="chip" onclick="setSliderChip('p_vnPct',70,this,'%')">70%</span>
+          </div>
+          <div class="mini-est" id="est_voiceNotes">→ calculando...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="step">
+      <div class="step-num">Pregunta 2 de 5</div>
+      <div class="step-q">¿Cuántas llamadas telefónicas recibes al mes?</div>
+      <div class="step-hint">Ingresa el volumen y duración. Te mostramos el costo con Voice Agent IA y con agente humano.</div>
+      <div class="fields-2" style="margin-bottom:1rem;">
+        <div class="field-group">
+          <label>Llamadas / mes</label>
+          <input type="number" id="p_llamadas" value="30" min="0" oninput="clearChips('chips_llam');preview()">
+          <div class="chips" id="chips_llam">
+            <span class="chip" onclick="setChip('p_llamadas',10,this)">10</span>
+            <span class="chip active" onclick="setChip('p_llamadas',30,this)">30</span>
+            <span class="chip" onclick="setChip('p_llamadas',100,this)">100</span>
+            <span class="chip" onclick="setChip('p_llamadas',300,this)">300</span>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Duración promedio (minutos)</label>
+          <input type="number" id="p_llamMin" value="5" min="1" oninput="clearChips('chips_dur');preview()">
+          <div class="chips" id="chips_dur">
+            <span class="chip" onclick="setChip('p_llamMin',3,this)">3 min</span>
+            <span class="chip active" onclick="setChip('p_llamMin',5,this)">5 min</span>
+            <span class="chip" onclick="setChip('p_llamMin',7,this)">7 min</span>
+            <span class="chip" onclick="setChip('p_llamMin',15,this)">15 min</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="call-compare">
+        <!-- Voice Agent card -->
+        <div class="call-card selected is-ai" id="callCard_ai" onclick="toggleCallMode('ai')">
+          <div class="cc-top-badge recommended">⭐ Recomendado</div>
+          <div class="cc-body">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+              <input type="checkbox" id="chk_ai" checked style="accent-color:#4f46e5;width:15px;height:15px;" onclick="event.stopPropagation();toggleCallMode('ai')">
+              <div class="cc-title">🤖 Voice Agent IA</div>
+            </div>
+            <div style="font-size:11px;color:#9b96e8;margin-bottom:4px;" id="cc_ai_mins">0 minutos / mes</div>
+            <div class="cc-price" id="cc_ai_price">$0.00<span style="font-size:13px;font-weight:500;color:#7c73e6;"> /mes</span></div>
+            <ul class="cc-features">
+              <li>Disponible 24/7, nunca descansa</li>
+              <li>Cero leads perdidos por falta de respuesta</li>
+              <li>Sin costo de nómina ni entrenamiento</li>
+              <li>Escala sin contratar más personas</li>
+            </ul>
+          </div>
+        </div>
+        <!-- Human agent card -->
+        <div class="call-card" id="callCard_human" onclick="toggleCallMode('human')">
+          <div class="cc-top-badge reference">Referencia</div>
+          <div class="cc-body">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+              <input type="checkbox" id="chk_human" style="accent-color:#4f46e5;width:15px;height:15px;" onclick="event.stopPropagation();toggleCallMode('human')">
+              <div class="cc-title">👤 Agente humano</div>
+            </div>
+            <div style="font-size:11px;color:#bbb;margin-bottom:4px;" id="cc_human_mins">0 minutos / mes</div>
+            <div class="cc-price gray" id="cc_human_price">$0.00<span style="font-size:13px;font-weight:500;color:#bbb;"> /mes</span></div>
+            <ul class="cc-features muted">
+              <li>Requiere persona disponible</li>
+              <li>Solo atiende en horario laboral</li>
+              <li>Costo adicional de nómina aparte</li>
+              <li>Capacidad limitada de llamadas simultáneas</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="call-note">
+        💡 Aunque el costo de plataforma del agente humano puede parecer menor, el Voice Agent <strong>elimina el costo de tener una persona dedicada a atender llamadas</strong> y garantiza respuesta inmediata a cualquier hora. La inversión en IA se recupera desde el primer lead que no se pierde.
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="step">
+      <div class="step-num">Pregunta 3 de 5</div>
+      <div class="step-q">¿Cuántos mensajes automáticos envías por WhatsApp al mes?</div>
+      <div class="step-hint">Mensajes que el sistema envía para retomar conversaciones cerradas. No los que el cliente te escribe a ti.</div>
+      <div class="fields-2">
+        <div class="field-group">
+          <label>Mensajes de seguimiento / mes<br><span style="font-size:10.5px;color:#bbb;">Recordatorios, citas, no contestó, secuencias</span></label>
+          <input type="number" id="p_waUtil" value="90" min="0" oninput="clearChips('chips_waUtil');preview()">
+          <div class="chips" id="chips_waUtil">
+            <span class="chip" onclick="setChip('p_waUtil',50,this)">50</span>
+            <span class="chip" onclick="setChip('p_waUtil',100,this)">100</span>
+            <span class="chip" onclick="setChip('p_waUtil',500,this)">500</span>
+            <span class="chip" onclick="setChip('p_waUtil',1000,this)">1,000</span>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Mensajes de promoción / mes<br><span style="font-size:10.5px;color:#bbb;">Ofertas, campañas, reactivación de leads</span></label>
+          <input type="number" id="p_waMkt" value="488" min="0" oninput="clearChips('chips_waMkt');preview()">
+          <div class="chips" id="chips_waMkt">
+            <span class="chip" onclick="setChip('p_waMkt',100,this)">100</span>
+            <span class="chip" onclick="setChip('p_waMkt',500,this)">500</span>
+            <span class="chip" onclick="setChip('p_waMkt',1000,this)">1,000</span>
+            <span class="chip" onclick="setChip('p_waMkt',1500,this)">1,500</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:1rem;">
+        <div class="toggle-item" style="border:none;padding:0;">
+          <div class="toggle-text">
+            <strong>📱 Número WhatsApp conectado a Meta API</strong>
+            <span>Suscripción mensual fija · $29 USD/mes</span>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="t_waSub" onchange="preview()" checked>
+            <div class="toggle-track"></div><div class="toggle-thumb"></div>
+          </label>
+        </div>
+      </div>
+      <div class="mini-est" id="est_wa">→ calculando...</div>
+    </div>
+
+    <!-- P4 -->
+    <div class="step">
+      <div class="step-num">Pregunta 4 de 5</div>
+      <div class="step-q">¿Cuántos emails envías al mes?</div>
+      <div class="step-hint">Campañas, secuencias automáticas y notificaciones enviadas desde la plataforma.</div>
+      <div class="fields-2">
+        <div class="field-group">
+          <label>Emails de campaña / mes</label>
+          <input type="number" id="p_emailMes" value="7108" min="0" oninput="clearChips('chips_email');preview()">
+          <div class="chips" id="chips_email">
+            <span class="chip" onclick="setChip('p_emailMes',500,this)">500</span>
+            <span class="chip" onclick="setChip('p_emailMes',1000,this)">1,000</span>
+            <span class="chip" onclick="setChip('p_emailMes',5000,this)">5,000</span>
+            <span class="chip" onclick="setChip('p_emailMes',10000,this)">10,000</span>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Notificaciones automáticas / mes</label>
+          <input type="number" id="p_notifMes" value="320" min="0" oninput="clearChips('chips_notif');preview()">
+          <div class="chips" id="chips_notif">
+            <span class="chip" onclick="setChip('p_notifMes',100,this)">100</span>
+            <span class="chip" onclick="setChip('p_notifMes',300,this)">300</span>
+            <span class="chip" onclick="setChip('p_notifMes',500,this)">500</span>
+            <span class="chip" onclick="setChip('p_notifMes',1000,this)">1,000</span>
+          </div>
+        </div>
+      </div>
+      <div class="mini-est" id="est_email">→ calculando...</div>
+    </div>
+
+    <!-- P5 -->
+    <div class="step">
+      <div class="step-num">Pregunta 5 de 5</div>
+      <div class="step-q">Costos adicionales por herramientas externas</div>
+      <div class="step-hint">Activa solo lo que aplica para este cliente.</div>
+      <div class="toggle-list">
+
+        <div class="toggle-item">
+          <div class="toggle-text">
+            <strong>⭐ Reviews AI — Respuesta automática a reseñas</strong>
+            <span>La IA responde las reseñas de Google automáticamente</span>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="t_reviews" onchange="preview()">
+            <div class="toggle-track"></div><div class="toggle-thumb"></div>
+          </label>
+        </div>
+
+        <div class="toggle-item">
+          <div class="toggle-text">
+            <strong>⚙️ Workflows Premium</strong>
+            <span>Inbound webhooks, Google Sheets, Custom webhook, AI Decision Maker, Translate</span>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="t_wf" onchange="toggleWfField()">
+            <div class="toggle-track"></div><div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div id="wf_extra" style="display:none;padding:0.6rem 0 0.2rem;">
+          <div class="field-group">
+            <label>Ejecuciones premium estimadas / mes</label>
+            <input type="number" id="p_wfMes" value="100" min="0" oninput="preview()" style="max-width:180px;">
+            <div class="chips">
+              <span class="chip" onclick="setChip('p_wfMes',50,this)">50</span>
+              <span class="chip active" onclick="setChip('p_wfMes',100,this)">100</span>
+              <span class="chip" onclick="setChip('p_wfMes',300,this)">300</span>
+              <span class="chip" onclick="setChip('p_wfMes',500,this)">500</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="toggle-item">
+          <div class="toggle-text">
+            <strong>🔄 n8n — Automatizaciones externas</strong>
+            <span>Alternativa a acciones premium · $18.90 USD/mes fijo</span>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="t_n8n" onchange="preview()">
+            <div class="toggle-track"></div><div class="toggle-thumb"></div>
+          </label>
+        </div>
+
+        <div class="toggle-item">
+          <div class="toggle-text">
+            <strong>🌐 Dominio web — Solo si hay que comprarlo</strong>
+            <span>Si el cliente <strong>no tiene dominio</strong> propio, se adquiere uno nuevo (~$15 USD/año = $1.25/mes). Si ya tiene dominio, solo se integra sin costo adicional.</span>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="t_domain" onchange="preview()">
+            <div class="toggle-track"></div><div class="toggle-thumb"></div>
+          </label>
+        </div>
+
+      </div>
+      <div class="mini-est" id="est_extras" style="margin-top:1rem;">→ calculando...</div>
+    </div>
+
+    <button class="cta" onclick="showResult()">Ver estimado completo →</button>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result">
+    <div class="result-header">
+      <h2>Estimado mensual</h2>
+      <button class="edit-btn" onclick="backToWizard()">← Editar respuestas</button>
+    </div>
+
+    <div class="result-card">
+      <div class="result-row" onclick="toggleSlider('sl_ai')">
+        <div class="rr-left"><span class="rr-icon">🤖</span>
+          <div><span class="rr-label">Chats atendidos por IA <span class="expand-hint">▾</span></span><span class="rr-sub" id="rl_ai_sub">—</span></div>
+        </div>
+        <span class="rr-price" id="rl_ai">$0.00</span>
+      </div>
+      <div class="slider-edit" id="sl_ai">
+        <div class="sle-row">
+          <label>Respuestas IA / día</label>
+          <input type="range" min="0" max="3000" step="5" id="sl_aiMsg" oninput="sliderCalc()">
+          <span id="sl_aiMsg_v">0</span>
+        </div>
+      </div>
+
+      <div class="result-row" onclick="toggleSlider('sl_calls')">
+        <div class="rr-left"><span class="rr-icon" id="rl_calls_icon">📞</span>
+          <div><span class="rr-label" id="rl_calls_label">Llamadas <span class="expand-hint">▾</span></span><span class="rr-sub" id="rl_calls_sub">—</span></div>
+        </div>
+        <span class="rr-price" id="rl_calls">$0.00</span>
+      </div>
+      <div class="slider-edit" id="sl_calls">
+        <div class="sle-row" id="sle_voice_row">
+          <label>Minutos Voice Agent / día</label>
+          <input type="range" min="0" max="500" step="5" id="sl_voiceCall" oninput="sliderCalc()">
+          <span id="sl_voiceCall_v">0 min</span>
+        </div>
+        <div class="sle-row" id="sle_human_row">
+          <label>Minutos agente humano / día</label>
+          <input type="range" min="0" max="500" step="5" id="sl_humanCall" oninput="sliderCalc()">
+          <span id="sl_humanCall_v">0 min</span>
+        </div>
+        <div class="sle-note" id="sl_rateNote">—</div>
+      </div>
+
+      <div class="result-row" onclick="toggleSlider('sl_wa')">
+        <div class="rr-left"><span class="rr-icon">💬</span>
+          <div><span class="rr-label">Mensajes automáticos WhatsApp <span class="expand-hint">▾</span></span><span class="rr-sub" id="rl_wa_sub">—</span></div>
+        </div>
+        <span class="rr-price" id="rl_wa">$0.00</span>
+      </div>
+      <div class="slider-edit" id="sl_wa">
+        <div class="sle-row">
+          <label>Seguimiento / día</label>
+          <input type="range" min="0" max="500" step="1" id="sl_waUtil" oninput="sliderCalc()">
+          <span id="sl_waUtil_v">0</span>
+        </div>
+        <div class="sle-row">
+          <label>Promoción / día</label>
+          <input type="range" min="0" max="500" step="1" id="sl_waMkt" oninput="sliderCalc()">
+          <span id="sl_waMkt_v">0</span>
+        </div>
+      </div>
+
+      <div class="result-row" onclick="toggleSlider('sl_email')">
+        <div class="rr-left"><span class="rr-icon">📧</span>
+          <div><span class="rr-label">Emails enviados <span class="expand-hint">▾</span></span><span class="rr-sub" id="rl_email_sub">—</span></div>
+        </div>
+        <span class="rr-price" id="rl_email">$0.00</span>
+      </div>
+      <div class="slider-edit" id="sl_email">
+        <div class="sle-row">
+          <label>Emails campaña / día</label>
+          <input type="range" min="0" max="5000" step="10" id="sl_emailD" oninput="sliderCalc()">
+          <span id="sl_emailD_v">0</span>
+        </div>
+        <div class="sle-row">
+          <label>Notificaciones / día</label>
+          <input type="range" min="0" max="500" step="5" id="sl_notifD" oninput="sliderCalc()">
+          <span id="sl_notifD_v">0</span>
+        </div>
+      </div>
+
+      <div class="result-row">
+        <div class="rr-left"><span class="rr-icon">⚙️</span>
+          <div><span class="rr-label">Herramientas adicionales</span><span class="rr-sub" id="rl_extras_sub">—</span></div>
+        </div>
+        <span class="rr-price" id="rl_extras">$0.00</span>
+      </div>
+    </div>
+
+    <div class="summary-box">
+      <div class="sb-label">Resumen mensual estimado (USD)</div>
+      <div class="sb-line"><span>🤖 Chats IA</span><span id="s_ai">—</span></div>
+      <div class="sb-line"><span id="s_calls_label">📞 Llamadas</span><span id="s_calls">—</span></div>
+      <div class="sb-line"><span>💬 Mensajes WhatsApp</span><span id="s_wa">—</span></div>
+      <div class="sb-line"><span>📧 Emails</span><span id="s_email">—</span></div>
+      <div class="sb-line"><span>⚙️ Herramientas adicionales</span><span id="s_extras">—</span></div>
+      <div class="sb-total"><span>Total uso variable / mes</span><span id="s_total">$0.00</span></div>
+    </div>
+
+    <div class="footer-note">
+      Estos son los costos adicionales de uso variable que se generan según el consumo mensual del cliente. Precios actualizados 2026. IA chat: $0.0128/respuesta. Voice Agent: $0.086/min (motor de voz + LLM). Llamada humana: $0.035/min (línea + grabación + transcripción). WhatsApp: tarifas Meta para Colombia, vigentes desde julio 2025. n8n: 70,000 COP ≈ $18.90 USD (tasa mar 2026).
+    </div>
+    <div style="text-align:center; margin-top:1.5rem; padding-bottom:1rem; font-size:11px; color:#ccc; letter-spacing:0.04em;">
+      Cognisium Lab — Todos los derechos reservados
+    </div>
+  </div>
+</div>
+
+<script>
+const VOICE_RATE_AI    = 0.086;
+const VOICE_RATE_HUMAN = 0.035;
+
+const P = {
+  ai: 0.01279,
+  waMkt: 0.02820,
+  waUtil: 0.003084,
+  waSub: 29.00,
+  email: 0.000675,
+  wf: 0.01,
+  n8n: 18.90,
+  domain: 15/12
+};
+const D = 30;
+const fmt = n => '$' + n.toFixed(2);
+
+// Multi-select call mode
+let callAI    = true;
+let callHuman = false;
+let savedState = {};
+
+function setChip(fieldId, val, el) {
+  document.getElementById(fieldId).value = val;
+  el.closest('.chips').querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  preview();
+}
+
+function setSliderChip(sliderId, val, el, suffix) {
+  document.getElementById(sliderId).value = val;
+  const box = document.getElementById('vnPctBox');
+  if (box && sliderId === 'p_vnPct') box.textContent = val + (suffix||'');
+  el.closest('.chips').querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  preview();
+}
+
+function clearChips(chipsId) {
+  const c = document.getElementById(chipsId);
+  if (c) c.querySelectorAll('.chip').forEach(ch => ch.classList.remove('active'));
+}
+
+function toggleCallMode(mode) {
+  if (mode === 'ai') {
+    callAI = !callAI;
+    document.getElementById('chk_ai').checked = callAI;
+    document.getElementById('callCard_ai').classList.toggle('selected', callAI);
+  } else {
+    callHuman = !callHuman;
+    document.getElementById('chk_human').checked = callHuman;
+    document.getElementById('callCard_human').classList.toggle('selected', callHuman);
+  }
+  // Ensure at least one is always selected
+  if (!callAI && !callHuman) {
+    callAI = true;
+    document.getElementById('chk_ai').checked = true;
+    document.getElementById('callCard_ai').classList.add('selected');
+  }
+  preview();
+}
+
+function toggleWfField() {
+  document.getElementById('wf_extra').style.display = document.getElementById('t_wf').checked ? 'block' : 'none';
+  preview();
+}
+
+function toggleVoiceNotes() {
+  document.getElementById('voiceNotes_extra').style.display = document.getElementById('t_voiceNotes').checked ? 'block' : 'none';
+  preview();
+}
+
+function preview() {
+  const chats  = +document.getElementById('p_chats').value || 0;
+  const msgPC  = +document.getElementById('p_msgPerChat').value || 1;
+  const totalAI = chats * msgPC;
+
+  // Check if voice notes are active to split the display
+  const vnActive = document.getElementById('t_voiceNotes').checked;
+  const pct      = vnActive ? (+document.getElementById('p_vnPct').value || 20) : 0;
+  const vnResponses = Math.round(totalAI * pct / 100);
+  const textResponses = totalAI - vnResponses;
+
+  // LLM cost applies to ALL responses (text + voice — LLM generates the text first either way)
+  const costAI = totalAI * P.ai;
+  const costAItext = textResponses * P.ai;
+  const costAIvoice = vnResponses * P.ai;
+
+  if (vnActive) {
+    document.getElementById('est_ai').innerHTML =
+      `<span style="color:#555;">Texto:</span> <strong>${textResponses.toLocaleString()}</strong> respuestas · ~${Math.round(textResponses/D)}/día &nbsp;|&nbsp; ` +
+      `<span style="color:#555;">Nota de voz:</span> <strong>${vnResponses.toLocaleString()}</strong> · ~${Math.round(vnResponses/D)}/día<br>` +
+      `<span style="color:#888;font-size:11px;">Total LLM (ambos tipos): </span><span style="font-size:11px;font-weight:700;color:#4f46e5;">${fmt(costAI)}/mes</span>`;
+  } else {
+    document.getElementById('est_ai').textContent = `→ ~${Math.round(totalAI/D)} respuestas/día · ${fmt(costAI)}/mes`;
+  }
+
+  const llam    = +document.getElementById('p_llamadas').value || 0;
+  const llamMin = +document.getElementById('p_llamMin').value || 1;
+  const totalMin = llam * llamMin;
+  const costCallAI    = callAI    ? totalMin * VOICE_RATE_AI    : 0;
+  const costCallHuman = callHuman ? totalMin * VOICE_RATE_HUMAN : 0;
+  document.getElementById('cc_ai_price').innerHTML    = fmt(costCallAI) + '<span style="font-size:13px;font-weight:500;color:#7c73e6;"> /mes</span>';
+  document.getElementById('cc_human_price').innerHTML = fmt(costCallHuman) + '<span style="font-size:13px;font-weight:500;color:#bbb;"> /mes</span>';
+  document.getElementById('cc_ai_mins').textContent    = callAI    ? totalMin.toLocaleString() + ' minutos / mes' : '(no seleccionado)';
+  document.getElementById('cc_human_mins').textContent = callHuman ? totalMin.toLocaleString() + ' minutos / mes' : '(no seleccionado)';
+
+  const waUtil = +document.getElementById('p_waUtil').value || 0;
+  const waMkt  = +document.getElementById('p_waMkt').value || 0;
+  const waSub  = document.getElementById('t_waSub').checked ? P.waSub : 0;
+  const costWA = waUtil * P.waUtil + waMkt * P.waMkt + waSub;
+  document.getElementById('est_wa').textContent = `→ Seguimiento ${fmt(waUtil*P.waUtil)} + Promoción ${fmt(waMkt*P.waMkt)}${waSub>0?' + $29 suscripción':''} = ${fmt(costWA)}/mes`;
+
+  const emailM = +document.getElementById('p_emailMes').value || 0;
+  const notifM = +document.getElementById('p_notifMes').value || 0;
+  const costEmail = (emailM + notifM) * P.email;
+  document.getElementById('est_email').textContent = `→ ${(emailM+notifM).toLocaleString()} emails · ${fmt(costEmail)}/mes`;
+
+  let costExtras = 0; const extLbl = [];
+  if (document.getElementById('t_reviews').checked) extLbl.push('Reviews AI');
+  if (vnActive) {
+    document.getElementById('vnPctBox').textContent = pct + '%';
+    // Avg message ~150 chars → ~150 words → spoken at ~150 wpm = ~1 min per 150 words
+    // A typical short chat response is ~50-80 words → ~0.35 min of audio
+    const AVG_AUDIO_MIN = 0.35;
+    const vnMins   = vnResponses * AVG_AUDIO_MIN;
+    // TTS cost: $0.012/min
+    const costTTS  = vnMins * 0.012;
+    // LLM cost for voice notes (already in costAI, but we show it here as breakdown)
+    const costLLMvn = vnResponses * P.ai;
+    const costVNtotal = costTTS; // LLM already counted in costAI above
+    costExtras += costVNtotal;
+    extLbl.push(`Notas de voz ${fmt(costVNtotal)}`);
+    document.getElementById('est_voiceNotes').innerHTML =
+      `<span style="font-size:11px;color:#888;">① LLM genera el texto primero:</span> ` +
+      `<span style="font-size:11px;color:#333;">${vnResponses.toLocaleString()} respuestas × $${P.ai.toFixed(4)} = </span>` +
+      `<span style="font-size:11.5px;font-weight:700;color:#4f46e5;">${fmt(costLLMvn)}</span>` +
+      `<span style="font-size:10.5px;color:#bbb;"> (ya incluido en costo IA)</span><br>` +
+      `<span style="font-size:11px;color:#888;">② TTS convierte a audio:</span> ` +
+      `<span style="font-size:11px;color:#333;">~${vnMins.toLocaleString(undefined,{maximumFractionDigits:0})} min × $0.012 = </span>` +
+      `<span style="font-size:11.5px;font-weight:700;color:#4f46e5;">${fmt(costTTS)}</span>` +
+      `<span style="font-size:10.5px;color:#bbb;"> (costo adicional)</span><br>` +
+      `<span style="font-size:10.5px;color:#bbb;">${textResponses.toLocaleString()} respuestas restantes solo en texto</span>`;
+  }
+  if (document.getElementById('t_wf').checked) {
+    const b = Math.max(0,(+document.getElementById('p_wfMes').value||0)-100)*P.wf;
+    costExtras += b; if(b>0) extLbl.push(`Workflows ${fmt(b)}`);
+  }
+  if (document.getElementById('t_n8n').checked)    { costExtras += P.n8n; extLbl.push('n8n $18.90'); }
+  if (document.getElementById('t_domain').checked) { costExtras += P.domain; extLbl.push(`Dominio ${fmt(P.domain)}/mes`); }
+  document.getElementById('est_extras').textContent = `→ ${extLbl.length ? extLbl.join(' · ') : 'Nada activado'} · ${fmt(costExtras)}/mes`;
+
+  savedState = { chats, msgPC, totalAI, llam, llamMin, totalMin, costCallAI, costCallHuman, waUtil, waMkt, waSub, costWA, emailM, notifM, costEmail, costExtras };
+}
+
+function showResult() {
+  preview();
+  const s = savedState;
+  const minDay = Math.round(s.totalMin / D);
+
+  function setSlider(id, val, max) {
+    const el = document.getElementById(id);
+    el.max = max; el.value = Math.min(Math.round(val), max);
+  }
+
+  setSlider('sl_aiMsg',     Math.round(s.totalAI/D), 3000);
+  setSlider('sl_voiceCall', callAI    ? minDay : 0, 500);
+  setSlider('sl_humanCall', callHuman ? minDay : 0, 500);
+  setSlider('sl_waUtil',    Math.round(s.waUtil/D), 500);
+  setSlider('sl_waMkt',     Math.round(s.waMkt/D), 500);
+  setSlider('sl_emailD',    Math.round(s.emailM/D), 5000);
+  setSlider('sl_notifD',    Math.round(s.notifM/D), 500);
+
+  document.getElementById('sl_aiMsg_v').textContent     = document.getElementById('sl_aiMsg').value;
+  document.getElementById('sl_voiceCall_v').textContent = document.getElementById('sl_voiceCall').value + ' min';
+  document.getElementById('sl_humanCall_v').textContent = document.getElementById('sl_humanCall').value + ' min';
+  document.getElementById('sl_waUtil_v').textContent    = document.getElementById('sl_waUtil').value;
+  document.getElementById('sl_waMkt_v').textContent     = document.getElementById('sl_waMkt').value;
+  document.getElementById('sl_emailD_v').textContent    = document.getElementById('sl_emailD').value;
+  document.getElementById('sl_notifD_v').textContent    = document.getElementById('sl_notifD').value;
+
+  document.getElementById('sle_voice_row').style.display = callAI    ? 'flex' : 'none';
+  document.getElementById('sle_human_row').style.display = callHuman ? 'flex' : 'none';
+
+  const callLabel = (callAI && callHuman) ? '🤖 + 👤 Llamadas (IA + humano)'
+    : callAI    ? '🤖 Llamadas — Voice Agent'
+    : '👤 Llamadas — Agente humano';
+  document.getElementById('rl_calls_label').innerHTML = callLabel + ' <span class="expand-hint">▾</span>';
+  document.getElementById('s_calls_label').textContent = (callAI && callHuman)
+    ? '🤖 + 👤 Llamadas (ambos)'
+    : callAI ? '🤖 Voice Agent' : '👤 Agente humano';
+  document.getElementById('sl_rateNote').textContent = (callAI && callHuman)
+    ? 'Voice Agent $0.086/min + Humano $0.035/min (ambos activos)'
+    : callAI ? 'Voice Agent: $0.086/min (motor de voz + LLM)'
+    : 'Agente humano: $0.035/min (línea + grabación + transcripción)';
+
+  renderResult();
+  document.getElementById('wizard').style.display = 'none';
+  document.getElementById('result').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function sliderCalc() {
+  document.getElementById('sl_aiMsg_v').textContent     = document.getElementById('sl_aiMsg').value;
+  document.getElementById('sl_voiceCall_v').textContent = document.getElementById('sl_voiceCall').value + ' min';
+  document.getElementById('sl_humanCall_v').textContent = document.getElementById('sl_humanCall').value + ' min';
+  document.getElementById('sl_waUtil_v').textContent    = document.getElementById('sl_waUtil').value;
+  document.getElementById('sl_waMkt_v').textContent     = document.getElementById('sl_waMkt').value;
+  document.getElementById('sl_emailD_v').textContent    = document.getElementById('sl_emailD').value;
+  document.getElementById('sl_notifD_v').textContent    = document.getElementById('sl_notifD').value;
+  renderResult();
+}
+
+function renderResult() {
+  const aiMsg     = +document.getElementById('sl_aiMsg').value;
+  const voiceCall = +document.getElementById('sl_voiceCall').value;
+  const humanCall = +document.getElementById('sl_humanCall').value;
+  const waUtil    = +document.getElementById('sl_waUtil').value;
+  const waMkt     = +document.getElementById('sl_waMkt').value;
+  const emailD    = +document.getElementById('sl_emailD').value;
+  const notifD    = +document.getElementById('sl_notifD').value;
+
+  const cAI    = aiMsg * D * P.ai;
+  const cCalls = voiceCall * D * VOICE_RATE_AI + humanCall * D * VOICE_RATE_HUMAN;
+  const waSub  = document.getElementById('t_waSub').checked ? P.waSub : 0;
+  const cWA    = waMkt * D * P.waMkt + waUtil * D * P.waUtil + waSub;
+  const cEmail = (emailD + notifD) * D * P.email;
+
+  let cExtras = 0; const extLbl = [];
+  if (document.getElementById('t_reviews').checked) extLbl.push('Reviews AI');
+  if (document.getElementById('t_voiceNotes').checked) {
+    const pct     = +document.getElementById('p_vnPct').value || 20;
+    const totalR  = aiMsg * D;
+    const vnR     = Math.round(totalR * pct / 100);
+    const costTTS = vnR * 0.35 * 0.012;
+    cExtras += costTTS; if(costTTS>0) extLbl.push(`Notas de voz TTS ${fmt(costTTS)}`);
+  }
+  if (document.getElementById('t_wf').checked) {
+    const b = Math.max(0,(+document.getElementById('p_wfMes').value||0)-100)*P.wf;
+    cExtras += b; if(b>0) extLbl.push(`Workflows ${fmt(b)}`);
+  }
+  if (document.getElementById('t_n8n').checked)    { cExtras += P.n8n; extLbl.push('n8n'); }
+  if (document.getElementById('t_domain').checked) { cExtras += P.domain; extLbl.push('Dominio'); }
+
+  document.getElementById('rl_ai').textContent      = fmt(cAI);
+  document.getElementById('rl_ai').className        = 'rr-price'+(cAI===0?' zero':'');
+  document.getElementById('rl_ai_sub').textContent  = `${aiMsg} respuestas/día · $${P.ai.toFixed(4)}/respuesta`;
+  document.getElementById('rl_calls').textContent   = fmt(cCalls);
+  document.getElementById('rl_calls').className     = 'rr-price'+(cCalls===0?' zero':'');
+  document.getElementById('rl_calls_sub').textContent = `${voiceCall+humanCall} min/día · ${(callAI && callHuman) ? '$0.086 IA + $0.035 humano' : callAI ? '$0.086/min' : '$0.035/min'}`;
+  document.getElementById('rl_wa').textContent      = fmt(cWA);
+  document.getElementById('rl_wa').className        = 'rr-price'+(cWA===0?' zero':'');
+  document.getElementById('rl_wa_sub').textContent  = `${waMkt}/día promoción · ${waUtil}/día seguimiento${waSub>0?' · +$29 suscripción':''}`;
+  document.getElementById('rl_email').textContent   = fmt(cEmail);
+  document.getElementById('rl_email').className     = 'rr-price'+(cEmail===0?' zero':'');
+  document.getElementById('rl_email_sub').textContent = `${emailD+notifD} emails/día`;
+  document.getElementById('rl_extras').textContent  = fmt(cExtras);
+  document.getElementById('rl_extras').className    = 'rr-price'+(cExtras===0?' zero':'');
+  document.getElementById('rl_extras_sub').textContent = extLbl.length ? extLbl.join(', ') : 'Ninguna activada';
+
+  const total = cAI + cCalls + cWA + cEmail + cExtras;
+  document.getElementById('s_ai').textContent     = fmt(cAI);
+  document.getElementById('s_calls').textContent  = fmt(cCalls);
+  document.getElementById('s_wa').textContent     = fmt(cWA);
+  document.getElementById('s_email').textContent  = fmt(cEmail);
+  document.getElementById('s_extras').textContent = fmt(cExtras);
+  document.getElementById('s_total').textContent  = fmt(total);
+}
+
+function toggleSlider(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+function backToWizard() {
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('wizard').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+preview();
+</script>
+</body>
+</html>
