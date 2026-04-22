@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instutécnico — Tracker de Implementación</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f5f4f0;
+    --color-bg-tertiary: #eeece6;
+    --color-text-primary: #1a1a18;
+    --color-text-secondary: #6b6a65;
+    --color-text-tertiary: #9e9d98;
+    --color-border-tertiary: rgba(0,0,0,0.12);
+    --color-border-secondary: rgba(0,0,0,0.22);
+    --color-border-primary: rgba(0,0,0,0.35);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg-primary: #1e1e1c;
+      --color-bg-secondary: #2a2a28;
+      --color-bg-tertiary: #232321;
+      --color-text-primary: #f0ede6;
+      --color-text-secondary: #a8a49e;
+      --color-text-tertiary: #6b6a65;
+      --color-border-tertiary: rgba(255,255,255,0.1);
+      --color-border-secondary: rgba(255,255,255,0.18);
+      --color-border-primary: rgba(255,255,255,0.28);
+    }
+  }
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 780px; margin: 0 auto; }
+  .header { margin-bottom: 1.5rem; }
+  .header h1 { font-size: 20px; font-weight: 600; color: var(--color-text-primary); }
+  .header p { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; }
+  .progress-global { background: var(--color-bg-secondary); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem; border: 0.5px solid var(--color-border-tertiary); }
+  .progress-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .progress-bar { height: 6px; background: var(--color-border-tertiary); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; background: #1D9E75; transition: width 0.6s ease; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .filter-btn { font-size: 12px; padding: 5px 12px; border-radius: 99px; border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; font-family: var(--font-sans); }
+  .filter-btn.active, .filter-btn:hover { background: var(--color-bg-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); }
+  .stats-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 1.5rem; }
+  .stat { background: var(--color-bg-secondary); border-radius: var(--radius-md); padding: 10px 12px; border: 0.5px solid var(--color-border-tertiary); }
+  .stat-val { font-size: 22px; font-weight: 600; color: var(--color-text-primary); }
+  .stat-val.green { color: #1D9E75; }
+  .stat-val.amber { color: #BA7517; }
+  .stat-val.red { color: #A32D2D; }
+  .stat-lbl { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+  .section { margin-bottom: 1rem; }
+  .section-header { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 8px; cursor: pointer; user-select: none; }
+  .section-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); flex: 1; }
+  .section-badge { font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
+  .badge-critica { background: #FCEBEB; color: #A32D2D; }
+  .badge-alta { background: #FAEEDA; color: #854F0B; }
+  .badge-media { background: #E6F1FB; color: #185FA5; }
+  .badge-fase4 { background: #EAF3DE; color: #3B6D11; }
+  .badge-hecho { background: #E1F5EE; color: #0F6E56; }
+  .badge-fase5 { background: #EEEDFE; color: #534AB7; }
+  .badge-fase6 { background: #E1F5EE; color: #0F6E56; }
+  .badge-fase7 { background: #FBEAF0; color: #993556; }
+  .section-count { font-size: 11px; color: var(--color-text-tertiary); }
+  .section-chevron { font-size: 11px; color: var(--color-text-tertiary); transition: transform 0.2s; }
+  .section-chevron.open { transform: rotate(180deg); }
+  .task-list { display: flex; flex-direction: column; gap: 4px; }
+  .task { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); border: 0.5px solid var(--color-border-tertiary); background: var(--color-bg-primary); cursor: pointer; transition: border-color 0.15s; }
+  .task:hover { border-color: var(--color-border-secondary); }
+  .task.done { opacity: 0.55; }
+  .checkbox { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--color-border-secondary); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .checkbox.checked { background: #1D9E75; border-color: #1D9E75; }
+  .checkbox.checked::after { content: ''; width: 8px; height: 5px; border-left: 1.5px solid white; border-bottom: 1.5px solid white; transform: rotate(-45deg) translateY(-1px); display: block; }
+  .task-content { flex: 1; min-width: 0; }
+  .task-title { font-size: 13px; color: var(--color-text-primary); line-height: 1.45; }
+  .task.done .task-title { text-decoration: line-through; color: var(--color-text-tertiary); }
+  .task-meta { display: flex; gap: 6px; margin-top: 5px; align-items: center; flex-wrap: wrap; }
+  .tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+  .tag-pipeline { background: #E6F1FB; color: #185FA5; }
+  .tag-automation { background: #EEEDFE; color: #534AB7; }
+  .tag-bot { background: #E1F5EE; color: #0F6E56; }
+  .tag-instuos { background: #FBEAF0; color: #993556; }
+  .tag-marketing { background: #FAEEDA; color: #854F0B; }
+  .task-effort { font-size: 11px; color: var(--color-text-tertiary); }
+  .notes-toggle { font-size: 11px; color: var(--color-text-secondary); cursor: pointer; text-decoration: underline; margin-top: 5px; display: inline-block; }
+  .notes-box { margin-top: 6px; display: none; }
+  .notes-box textarea { width: 100%; font-size: 12px; padding: 6px 8px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--radius-md); background: var(--color-bg-secondary); color: var(--color-text-primary); resize: vertical; min-height: 52px; font-family: var(--font-sans); }
+  .add-task { display: flex; gap: 8px; margin-top: 8px; }
+  .add-task input { flex: 1; font-size: 12px; padding: 7px 10px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--radius-md); background: var(--color-bg-secondary); color: var(--color-text-primary); font-family: var(--font-sans); }
+  .add-task button { font-size: 12px; padding: 7px 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--radius-md); background: transparent; color: var(--color-text-primary); cursor: pointer; font-family: var(--font-sans); transition: background 0.15s; }
+  .add-task button:hover { background: var(--color-bg-secondary); }
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    body { padding: 1rem 0.75rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Sistema Comercial — Instutécnico</h1>
+    <p>Tracker de implementación · Fase 3 activa (Abr–May 2026)</p>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div class="progress-global">
+    <div class="progress-label"><span>Progreso global del proyecto</span><span id="globalPct">—</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="globalBar" style="width:0%;"></div></div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all', this)">Todas</button>
+    <button class="filter-btn" onclick="setFilter('pending', this)">Pendientes</button>
+    <button class="filter-btn" onclick="setFilter('done', this)">Completadas</button>
+    <button class="filter-btn" onclick="setFilter('critica', this)">Críticas</button>
+    <button class="filter-btn" onclick="setFilter('alta', this)">Alta prioridad</button>
+  </div>
+
+  <div id="sectionsContainer"></div>
+</div>
+
+<script>
+const STORAGE_KEY = 'instutecnico_tracker_v3';
+
+const sections = [
+  {
+    id: 'fase3_critica',
+    title: 'Fase 3 — Problemas críticos',
+    badge: 'critica',
+    badgeLabel: 'Crítica',
+    open: true,
+    tasks: [
+      { id: 't1', title: 'Corregir enrutamiento WhatsApp Ads por sede (Ad/Post ID)', tags: ['automation','marketing'], effort: '1–2 días', note: 'Requiere coordinar con Raúl (director de marketing) para exportar IDs de anuncios activos por sede. Actualmente todos los leads van a Kissimmee por defecto.', done: false, priority: 'critica' },
+      { id: 't2', title: 'Limpiar 5,833 tareas duplicadas (stale) en pipeline Kissimmee', tags: ['automation'], effort: '1–2 días', note: 'Tareas repetitivas por leads no movidos de etapa. Corregir workflow para mover lead automáticamente antes de reactivar.', done: false, priority: 'critica' },
+      { id: 't3', title: 'Crear workflow de salida en etapa Cerrado (Remove from all workflows + tag Cliente Activo)', tags: ['automation','pipeline'], effort: '< 1 día', note: 'Sin esto, leads cerrados siguen recibiendo mensajes comerciales.', done: false, priority: 'critica' },
+    ]
+  },
+  {
+    id: 'fase3_alta',
+    title: 'Fase 3 — Alta prioridad',
+    badge: 'alta',
+    badgeLabel: 'Alta',
+    open: true,
+    tasks: [
+      { id: 't4', title: 'Replicar estructura Wait for Reply (7 días) + Condition + Bot en los 5 mensajes restantes de No Localizado', tags: ['automation','bot'], effort: '< 1 día', note: 'Ya implementado en WhatsApp 02. Replicar en mensajes 1, 3, 4, 5 y 6.', done: false, priority: 'alta' },
+      { id: 't5', title: 'Completar rama Stop Promotions en Intento 2 (DND + mover a No Calificado + remove tags + remove workflows)', tags: ['automation'], effort: '< 1 día', note: 'La rama existe pero está incompleta.', done: false, priority: 'alta' },
+      { id: 't6', title: 'Actualizar fechas dinámicas — crear custom fields por sede y reemplazar fechas hardcodeadas en mensajes', tags: ['automation','pipeline'], effort: '1 día', note: 'Crear campos: proxima_fecha_inicio_kissimmee, _jacksonville, _orange_park. Agregar IF/ELSE por campus en workflow de asignación.', done: false, priority: 'alta' },
+      { id: 't7', title: 'Conectar auto follow-up 2 del bot a workflow para mover lead a No Localizado automáticamente', tags: ['bot','automation'], effort: '< 1 día', note: 'El segundo follow-up del bot no tiene workflow conectado.', done: false, priority: 'alta' },
+    ]
+  },
+  {
+    id: 'fase3_media',
+    title: 'Fase 3 — Media prioridad',
+    badge: 'media',
+    badgeLabel: 'Media',
+    open: false,
+    tasks: [
+      { id: 't8', title: 'Corregir trigger "Interesado en Ambos Cursos" — no se ejecuta en AI Conversations', tags: ['automation','bot'], effort: '< 1 día', note: 'Revisar condición del trigger en GHL.', done: false, priority: 'media' },
+      { id: 't9', title: 'Conectar bot RRSS (Instagram + Facebook) a los 6 workflows de actualización de campos en GHL', tags: ['bot','automation'], effort: '1 día', note: 'El bot de redes sociales no ejecuta las automatizaciones de campos Campus/Curso.', done: false, priority: 'media' },
+      { id: 't10', title: 'Simplificar pipeline DMs (900+ leads sin movimiento) + asignar responsable', tags: ['pipeline'], effort: '1–2 días', note: '760+ en New Lead Messenger, 167+ en New Lead Instagram sin automatizaciones.', done: false, priority: 'media' },
+      { id: 't11', title: 'Corregir rama None del agendamiento comercial (actualmente crea oportunidad en Jacksonville sin sede identificada)', tags: ['automation'], effort: '< 1 día', note: 'Cambiar por notificación interna de alerta.', done: false, priority: 'media' },
+    ]
+  },
+  {
+    id: 'fase3_completadas',
+    title: 'Fase 3 — Ya implementado',
+    badge: 'hecho',
+    badgeLabel: 'Hecho',
+    open: false,
+    tasks: [
+      { id: 't12', title: 'Secuencia de 7 mensajes de reactivación No Localizado (con delays correctos)', tags: ['automation'], effort: '', note: '', done: true, priority: 'alta' },
+      { id: 't13', title: 'Agente recepcionista para agendar visitas desde mensajes de No Localizado', tags: ['bot'], effort: '', note: '', done: true, priority: 'alta' },
+      { id: 't14', title: 'Wait for Reply (7 días) + Condition IF/ELSE para filtrar respuestas de botones vs texto libre', tags: ['automation','bot'], effort: '', note: 'Implementado en WhatsApp 02. Pendiente replicar en los demás.', done: true, priority: 'alta' },
+      { id: 't15', title: 'Errores del agente de IA corregidos', tags: ['bot'], effort: '', note: '', done: true, priority: 'media' },
+      { id: 't16', title: 'Stop Promotions removido del Condition (redundante) — dejado solo en rama directa del Wait for Reply', tags: ['automation'], effort: '', note: '', done: true, priority: 'media' },
+    ]
+  },
+  {
+    id: 'fase4',
+    title: 'Fase 4 — Expansión académica (Jun–Jul 2026)',
+    badge: 'fase4',
+    badgeLabel: 'Fase 4',
+    open: false,
+    tasks: [
+      { id: 't17', title: 'Sincronización bidireccional de visitas GHL ↔ InstuOS', tags: ['instuos'], effort: '', note: '', done: false, priority: 'fase4' },
+      { id: 't18', title: 'Notificación automática de deudores en InstuOS', tags: ['instuos'], effort: '', note: '', done: false, priority: 'fase4' },
+      { id: 't19', title: 'Filtro por fecha de matrícula en módulo Estudiantes', tags: ['instuos'], effort: '', note: '', done: false, priority: 'fase4' },
+      { id: 't20', title: 'Webhook formulario de inscripción → vista del estudiante en InstuOS', tags: ['instuos'], effort: '', note: '', done: false, priority: 'fase4' },
+      { id: 't21', title: 'Vista de estudiantes graduados por curso pasado', tags: ['instuos'], effort: '', note: '', done: false, priority: 'fase4' },
+      { id: 't22', title: 'Activar A2P para envío de mensajes en escala', tags: ['automation'], effort: '', note: '', done: false, priority: 'fase4' },
+      { id: 't23', title: 'Smart Tags en GHL para priorización visual de leads', tags: ['pipeline'], effort: '', note: '', done: false, priority: 'fase4' },
+    ]
+  },
+  {
+    id: 'fase5',
+    title: 'Fase 5 — Reactivación intensivos y DMs (Ago–Sep 2026)',
+    badge: 'fase5',
+    badgeLabel: 'Fase 5',
+    open: false,
+    tasks: [
+      { id: 't24', title: 'Campaña de reactivación masiva para 330 leads históricos de Intensivo Kissimmee', tags: ['automation','marketing'], effort: '', note: '', done: false, priority: 'fase5' },
+      { id: 't25', title: 'Reestructurar pipelines de Cursos Intensivos con la nueva lógica', tags: ['pipeline'], effort: '', note: '', done: false, priority: 'fase5' },
+      { id: 't26', title: 'Automatizar movimiento de etapas en pipeline DMs', tags: ['automation','pipeline'], effort: '', note: '', done: false, priority: 'fase5' },
+      { id: 't27', title: 'Campaña de reactivación para 118 leads acumulados en Curso Online', tags: ['automation'], effort: '', note: '', done: false, priority: 'fase5' },
+    ]
+  },
+  {
+    id: 'fase6',
+    title: 'Fase 6 — Escuela Online / LMS (Oct–Nov 2026)',
+    badge: 'fase6',
+    badgeLabel: 'Fase 6',
+    open: false,
+    tasks: [
+      { id: 't28', title: 'Definir plataforma LMS (GHL Memberships, Thinkific o Teachable)', tags: ['instuos'], effort: '', note: '', done: false, priority: 'fase6' },
+      { id: 't29', title: 'Organizar contenidos del curso HVAC online', tags: ['instuos'], effort: '', note: '', done: false, priority: 'fase6' },
+      { id: 't30', title: 'Flujos de acceso, pagos y onboarding para estudiantes online', tags: ['automation'], effort: '', note: '', done: false, priority: 'fase6' },
+      { id: 't31', title: 'Bot especializado para flujo de curso online', tags: ['bot'], effort: '', note: '', done: false, priority: 'fase6' },
+      { id: 't32', title: 'Integración YouTube para clases gratuitas como lead magnet', tags: ['marketing'], effort: '', note: '', done: false, priority: 'fase6' },
+    ]
+  },
+  {
+    id: 'fase7',
+    title: 'Fase 7 — Consolidación total (Dic 2026)',
+    badge: 'fase7',
+    badgeLabel: 'Fase 7',
+    open: false,
+    tasks: [
+      { id: 't33', title: 'Dashboard ejecutivo de métricas comerciales (conversión, CAC, LTV por sede)', tags: ['instuos'], effort: '', note: '', done: false, priority: 'fase7' },
+      { id: 't34', title: 'Documentación de usuario en video para capacitación del equipo', tags: ['instuos'], effort: '', note: '', done: false, priority: 'fase7' },
+      { id: 't35', title: 'Proceso de capacitación de ventas documentado (manejo de objeciones)', tags: ['instuos'], effort: '', note: '', done: false, priority: 'fase7' },
+      { id: 't36', title: 'Preparación de arquitectura para apertura de nueva sede', tags: ['pipeline','automation'], effort: '', note: '', done: false, priority: 'fase7' },
+      { id: 't37', title: 'Evaluación integración Stripe para pagos automáticos recurrentes', tags: ['instuos'], effort: '', note: '', done: false, priority: 'fase7' },
+    ]
+  }
+];
+
+let state = { tasks: {}, notes: {}, openSections: {}, customTasks: {} };
+let currentFilter = 'all';
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) state = { ...state, ...JSON.parse(saved) };
+  } catch(e) {}
+  sections.forEach(s => {
+    if (state.openSections[s.id] === undefined) state.openSections[s.id] = s.open;
+  });
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function isTaskDone(taskId, defaultDone) {
+  return state.tasks[taskId] !== undefined ? state.tasks[taskId] : defaultDone;
+}
+
+function getNote(taskId, defaultNote) {
+  return state.notes[taskId] !== undefined ? state.notes[taskId] : (defaultNote || '');
+}
+
+function toggleTask(taskId, defaultDone) {
+  state.tasks[taskId] = !isTaskDone(taskId, defaultDone);
+  saveState();
+  render();
+}
+
+function toggleSection(sectionId) {
+  state.openSections[sectionId] = !state.openSections[sectionId];
+  saveState();
+  render();
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function updateNote(taskId, val) {
+  state.notes[taskId] = val;
+  saveState();
+}
+
+function toggleNotes(taskId, e) {
+  if (e) e.stopPropagation();
+  const box = document.getElementById('notes-box-' + taskId);
+  if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function addTask(sectionId, e) {
+  if (e) e.stopPropagation();
+  const input = document.getElementById('add-input-' + sectionId);
+  const val = input ? input.value.trim() : '';
+  if (!val) return;
+  const section = sections.find(s => s.id === sectionId);
+  if (!section) return;
+  const newId = 'custom_' + Date.now();
+  section.tasks.push({ id: newId, title: val, tags: [], effort: '', note: '', done: false, priority: section.id.includes('critica') ? 'critica' : 'media' });
+  if (input) input.value = '';
+  saveState();
+  render();
+}
+
+function calcStats() {
+  let total = 0, done = 0, pendingCritica = 0;
+  sections.forEach(s => s.tasks.forEach(t => {
+    total++;
+    if (isTaskDone(t.id, t.done)) done++;
+    if (t.priority === 'critica' && !isTaskDone(t.id, t.done)) pendingCritica++;
+  }));
+  return { total, done, pending: total - done, pendingCritica };
+}
+
+function filterTask(task) {
+  const done = isTaskDone(task.id, task.done);
+  if (currentFilter === 'pending') return !done;
+  if (currentFilter === 'done') return done;
+  if (currentFilter === 'critica') return task.priority === 'critica';
+  if (currentFilter === 'alta') return task.priority === 'alta';
+  return true;
+}
+
+function tagLabel(t) {
+  const map = { automation: 'Automatización', pipeline: 'Pipeline', bot: 'Bot / IA', instuos: 'InstuOS', marketing: 'Marketing' };
+  return map[t] || t;
+}
+
+function render() {
+  const stats = calcStats();
+  const pct = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
+
+  document.getElementById('globalPct').textContent = pct + '%';
+  document.getElementById('globalBar').style.width = pct + '%';
+
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat"><div class="stat-val">${stats.total}</div><div class="stat-lbl">Total tareas</div></div>
+    <div class="stat"><div class="stat-val green">${stats.done}</div><div class="stat-lbl">Completadas</div></div>
+    <div class="stat"><div class="stat-val amber">${stats.pending}</div><div class="stat-lbl">Pendientes</div></div>
+    <div class="stat"><div class="stat-val red">${stats.pendingCritica}</div><div class="stat-lbl">Críticas activas</div></div>
+  `;
+
+  const container = document.getElementById('sectionsContainer');
+  container.innerHTML = '';
+
+  sections.forEach(section => {
+    const visibleTasks = section.tasks.filter(filterTask);
+    if (visibleTasks.length === 0) return;
+    const isOpen = state.openSections[section.id];
+    const doneTasks = section.tasks.filter(t => isTaskDone(t.id, t.done)).length;
+
+    const sectionEl = document.createElement('div');
+    sectionEl.className = 'section';
+
+    let tasksHTML = '';
+    if (isOpen) {
+      tasksHTML = `<div class="task-list">
+        ${visibleTasks.map(task => {
+          const done = isTaskDone(task.id, task.done);
+          const note = getNote(task.id, task.note);
+          return `
+          <div class="task ${done ? 'done' : ''}" onclick="toggleTask('${task.id}', ${task.done})">
+            <div class="checkbox ${done ? 'checked' : ''}"></div>
+            <div class="task-content" onclick="event.stopPropagation()">
+              <div class="task-title" onclick="toggleTask('${task.id}', ${task.done})">${task.title}</div>
+              <div class="task-meta">
+                ${task.tags.map(t => `<span class="tag tag-${t}">${tagLabel(t)}</span>`).join('')}
+                ${task.effort ? `<span class="task-effort">${task.effort}</span>` : ''}
+              </div>
+              <span class="notes-toggle" onclick="toggleNotes('${task.id}', event)">+ nota</span>
+              <div id="notes-box-${task.id}" class="notes-box">
+                <textarea placeholder="Agrega una nota..." onchange="updateNote('${task.id}', this.value)">${note}</textarea>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+        <div class="add-task">
+          <input id="add-input-${section.id}" type="text" placeholder="Agregar tarea a esta sección..." onclick="event.stopPropagation()" />
+          <button onclick="addTask('${section.id}', event)">+ Agregar</button>
+        </div>
+      </div>`;
+    }
+
+    sectionEl.innerHTML = `
+      <div class="section-header" onclick="toggleSection('${section.id}')">
+        <span class="section-title">${section.title}</span>
+        <span class="section-badge badge-${section.badge}">${section.badgeLabel}</span>
+        <span class="section-count">${doneTasks}/${section.tasks.length}</span>
+        <span class="section-chevron ${isOpen ? 'open' : ''}">▼</span>
+      </div>
+      ${tasksHTML}
+    `;
+    container.appendChild(sectionEl);
+  });
+}
+
+loadState();
+render();
+</script>
+</body>
+</html>

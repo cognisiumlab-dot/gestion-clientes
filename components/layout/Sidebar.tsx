@@ -10,6 +10,7 @@ import {
   Wallet,
   CreditCard,
   Building2,
+  CheckSquare,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ const nav = [
   { href: "/proveedores", label: "Proveedores", icon: Building2 },
   { href: "/fondos", label: "Fondos", icon: Wallet },
   { href: "/cuentas", label: "Cuentas", icon: CreditCard },
+  { href: "/tareas", label: "Tareas", icon: CheckSquare },
 ];
 
 export function Sidebar() {
