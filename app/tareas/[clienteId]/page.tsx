@@ -12,22 +12,31 @@ export default async function TareasClientePage({
 }) {
   const { clienteId } = await params;
   const isGeneral = clienteId === "general";
+  const isCognisium = clienteId === "cognisium";
 
   const [tareas, cliente] = await Promise.all([
     prisma.tarea.findMany({
-      where: { clienteId: isGeneral ? null : clienteId },
+      where: isCognisium
+        ? { esInterno: true }
+        : isGeneral
+          ? { clienteId: null, esInterno: false }
+          : { clienteId },
       orderBy: [{ seccion: "asc" }, { orden: "asc" }, { creadoEn: "asc" }],
       include: { cliente: { select: { id: true, nombre: true } } },
     }),
-    isGeneral
+    isCognisium || isGeneral
       ? null
       : prisma.cliente.findUnique({ where: { id: clienteId } }),
   ]);
 
-  if (!isGeneral && !cliente) notFound();
+  if (!isCognisium && !isGeneral && !cliente) notFound();
 
-  const nombre = isGeneral ? "Sin asignar" : cliente!.nombre;
-  const descripcion = isGeneral ? "Tareas sin cliente asignado" : (cliente!.empresa ?? undefined);
+  const nombre = isCognisium ? "Cognisium Lab" : isGeneral ? "Sin asignar" : cliente!.nombre;
+  const descripcion = isCognisium
+    ? "Tareas internas del negocio"
+    : isGeneral
+      ? "Tareas sin cliente asignado"
+      : (cliente!.empresa ?? undefined);
 
   return (
     <div>
@@ -42,7 +51,8 @@ export default async function TareasClientePage({
       <TareasClient
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         initialTareas={tareas as any}
-        clienteId={isGeneral ? null : clienteId}
+        clienteId={isCognisium || isGeneral ? null : clienteId}
+        esInterno={isCognisium}
       />
     </div>
   );

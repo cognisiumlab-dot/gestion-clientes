@@ -1,19 +1,23 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { CheckSquare, Users } from "lucide-react";
+import { CheckSquare, Users, Building2 } from "lucide-react";
 
 export default async function TareasIndexPage() {
-  const [clientes, tareasGenerales] = await Promise.all([
+  const [clientes, tareasGenerales, tareasInternas] = await Promise.all([
     prisma.cliente.findMany({
       orderBy: { nombre: "asc" },
       include: {
-        _count: { select: { tareas: true } },
-        tareas: { select: { completado: true } },
+        _count: { select: { tareas: { where: { esInterno: false } } } },
+        tareas: { where: { esInterno: false }, select: { completado: true } },
       },
     }),
     prisma.tarea.findMany({
-      where: { clienteId: null },
+      where: { clienteId: null, esInterno: false },
+      select: { completado: true },
+    }),
+    prisma.tarea.findMany({
+      where: { esInterno: true },
       select: { completado: true },
     }),
   ]);
@@ -22,9 +26,45 @@ export default async function TareasIndexPage() {
 
   return (
     <div>
-      <PageHeader title="Tareas" description="Seguimiento por cliente" />
+      <PageHeader title="Tareas" description="Seguimiento por cliente e interno" />
 
       <div className="grid grid-cols-3 gap-4">
+        {/* Cognisium Lab — tareas internas */}
+        {tareasInternas.length > 0 && (
+          <Link href="/tareas/cognisium">
+            <div className="rounded-lg border border-indigo-200 bg-indigo-50/40 p-5 hover:border-indigo-300 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-md bg-indigo-600 flex items-center justify-center">
+                  <Building2 size={13} className="text-white" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-indigo-900">Cognisium Lab</p>
+                  <p className="text-xs text-indigo-400">Gestión interna</p>
+                </div>
+              </div>
+              <TareaStats tareas={tareasInternas} />
+            </div>
+          </Link>
+        )}
+
+        {/* Si no hay aún tareas internas, mostrar tarjeta de acceso directo */}
+        {tareasInternas.length === 0 && (
+          <Link href="/tareas/cognisium">
+            <div className="rounded-lg border border-dashed border-indigo-200 bg-indigo-50/20 p-5 hover:border-indigo-300 hover:bg-indigo-50/40 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-md bg-indigo-100 flex items-center justify-center">
+                  <Building2 size={13} className="text-indigo-500" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-indigo-700">Cognisium Lab</p>
+                  <p className="text-xs text-indigo-400">Gestión interna</p>
+                </div>
+              </div>
+              <p className="text-xs text-indigo-400 mt-1">Tareas de negocio, propuestas, admin…</p>
+            </div>
+          </Link>
+        )}
+
         {/* Sin asignar */}
         {tareasGenerales.length > 0 && (
           <Link href="/tareas/general">
@@ -59,7 +99,6 @@ export default async function TareasIndexPage() {
                   </div>
                 </div>
                 <TareaStats tareas={c.tareas} />
-                {/* Progress */}
                 <div className="mt-3">
                   <div className="h-1 bg-neutral-100 rounded-full overflow-hidden">
                     <div
@@ -75,7 +114,7 @@ export default async function TareasIndexPage() {
         })}
 
         {/* Empty */}
-        {clientesConTareas.length === 0 && tareasGenerales.length === 0 && (
+        {clientesConTareas.length === 0 && tareasGenerales.length === 0 && tareasInternas.length === 0 && (
           <div className="col-span-3 flex flex-col items-center justify-center py-16 rounded-lg border border-dashed border-neutral-200 bg-white text-center">
             <div className="w-12 h-12 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center justify-center mb-4">
               <Users size={20} className="text-neutral-400" />

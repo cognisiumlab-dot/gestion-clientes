@@ -11,6 +11,7 @@ const schema = z.object({
   etiquetas: z.array(z.string()).default([]),
   orden: z.number().default(0),
   clienteId: z.string().optional().nullable(),
+  esInterno: z.boolean().default(false),
 });
 
 export async function GET() {

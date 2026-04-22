@@ -85,9 +85,11 @@ const emptyForm = (): NuevaTareaForm => ({
 export function TareasClient({
   initialTareas,
   clienteId,
+  esInterno = false,
 }: {
   initialTareas: Tarea[];
   clienteId?: string | null;
+  esInterno?: boolean;
 }) {
   const [tareas, setTareas] = useState<Tarea[]>(initialTareas);
   const [filter, setFilter] = useState<Filter>("all");
@@ -163,6 +165,7 @@ export function TareasClient({
         etiquetas: form.etiquetas,
         descripcion: form.descripcion || null,
         clienteId: clienteId ?? null,
+        esInterno,
         orden: 99,
       }),
     });
@@ -409,7 +412,7 @@ export function TareasClient({
                     />
                   ))}
                   {/* Quick add */}
-                  <QuickAdd seccion={seccion} clienteId={clienteId ?? null} onAdd={(t) => setTareas((p) => [...p, t])} />
+                  <QuickAdd seccion={seccion} clienteId={clienteId ?? null} esInterno={esInterno} onAdd={(t) => setTareas((p) => [...p, t])} />
                 </div>
               )}
             </div>
@@ -644,10 +647,12 @@ function TaskRow({
 function QuickAdd({
   seccion,
   clienteId,
+  esInterno = false,
   onAdd,
 }: {
   seccion: string;
   clienteId: string | null;
+  esInterno?: boolean;
   onAdd: (t: Tarea) => void;
 }) {
   const [value, setValue] = useState("");
@@ -658,7 +663,7 @@ function QuickAdd({
     setValue("");
     const res = await fetch("/api/tareas", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ titulo, seccion, prioridad: "media", etiquetas: [], orden: 99, clienteId }),
+      body: JSON.stringify({ titulo, seccion, prioridad: "media", etiquetas: [], orden: 99, clienteId, esInterno }),
     });
     if (res.ok) onAdd(await res.json());
   }

@@ -33,10 +33,27 @@ model Tarea {
   etiquetas     String[]
   orden         Int      @default(0)
   clienteId     String?
+  esInterno     Boolean  @default(false)
   creadoEn      DateTime @default(now())
   actualizadoEn DateTime @updatedAt
 
   cliente Cliente? @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+}
+
+model Propuesta {
+  id              String   @id @default(cuid())
+  titulo          String
+  clienteNombre   String
+  clienteEmpresa  String?
+  clienteEmail    String?
+  clienteSector   String?
+  serviciosJson   String   @default("[]")
+  calculadoraJson String   @default("{}")
+  contexto        String?
+  contenido       String?
+  estado          String   @default("borrador")
+  creadoEn        DateTime @default(now())
+  actualizadoEn   DateTime @updatedAt
 }
 
 model Cuenta {

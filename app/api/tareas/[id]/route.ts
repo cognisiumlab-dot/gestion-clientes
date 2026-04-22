@@ -11,6 +11,7 @@ const schema = z.object({
   esfuerzo: z.string().optional(),
   etiquetas: z.array(z.string()).optional(),
   clienteId: z.string().optional().nullable(),
+  esInterno: z.boolean().optional(),
 });
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
